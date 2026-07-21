@@ -40,7 +40,7 @@
             <button class="mode-card mode-card-play" type="button" id="btn-mode-play" data-mode="play">
               <span class="mode-emoji" aria-hidden="true">🏆</span>
               <span class="mode-name">Play</span>
-              <span class="mode-desc">10 questions · score bar</span>
+              <span class="mode-desc" id="play-mode-desc">10 questions · score bar</span>
             </button>
             <button class="mode-card mode-card-practice" type="button" id="btn-mode-practice" data-mode="practice">
               <span class="mode-emoji" aria-hidden="true">🌈</span>
@@ -60,12 +60,18 @@
               <span class="sticker-progress" id="music-progress-title">0/8</span>
             </button>
           </div>
-          <button class="btn btn-ghost btn-music" type="button" id="btn-music" aria-pressed="false">
-            <span class="music-icon" aria-hidden="true">♪</span>
-            <span>Music</span>
-            <span class="music-track" id="music-label"></span>
-          </button>
-          <p class="credit-line">Play 8+ correct · unlock sticker or song</p>
+          <div class="title-tools">
+            <button class="btn btn-ghost btn-music" type="button" id="btn-music" aria-pressed="false">
+              <span class="music-icon" aria-hidden="true">♪</span>
+              <span>Music</span>
+              <span class="music-track" id="music-label"></span>
+            </button>
+            <button class="btn btn-ghost btn-settings" type="button" id="btn-settings" aria-label="Settings">
+              <span aria-hidden="true">⚙️</span>
+              <span>Settings</span>
+            </button>
+          </div>
+          <p class="credit-line" id="settings-summary">Play 10 · unlock at 8+</p>
         </div>
       </section>
 
@@ -100,6 +106,42 @@
             <button class="animal-card" type="button" data-animal="bear" aria-label="Bear">
               <img class="animal-art" src="assets/animals/bear.svg" alt="" width="120" height="120">
               <span class="animal-name">Bear</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Category pick -->
+      <section class="screen screen-category" id="screen-category" aria-label="Choose category" hidden>
+        <div class="pick-bg" aria-hidden="true"></div>
+        <div class="pick-content">
+          <button class="btn btn-icon pick-back" type="button" id="btn-category-back" aria-label="Back">←</button>
+          <h2 class="pick-title">Pick a topic</h2>
+          <p class="pick-sub">What do you want to learn?</p>
+          <div class="category-grid" id="category-grid" role="group" aria-label="Question categories">
+            <button class="category-card" type="button" data-category="all" aria-label="All">
+              <span class="category-emoji" aria-hidden="true">✨</span>
+              <span class="category-name">All</span>
+            </button>
+            <button class="category-card" type="button" data-category="food" aria-label="Food">
+              <span class="category-emoji" aria-hidden="true">🍎</span>
+              <span class="category-name">Food</span>
+            </button>
+            <button class="category-card" type="button" data-category="feelings" aria-label="Feelings">
+              <span class="category-emoji" aria-hidden="true">😊</span>
+              <span class="category-name">Feelings</span>
+            </button>
+            <button class="category-card" type="button" data-category="home" aria-label="Home">
+              <span class="category-emoji" aria-hidden="true">🏠</span>
+              <span class="category-name">Home</span>
+            </button>
+            <button class="category-card" type="button" data-category="playground" aria-label="Playground">
+              <span class="category-emoji" aria-hidden="true">🎠</span>
+              <span class="category-name">Playground</span>
+            </button>
+            <button class="category-card" type="button" data-category="treats" aria-label="Animal treats">
+              <span class="category-emoji" aria-hidden="true">🦴</span>
+              <span class="category-name">Animal treats</span>
             </button>
           </div>
         </div>
@@ -143,6 +185,7 @@
             <div class="hud-meta">
               <span class="mode-chip" id="mode-chip">Play</span>
               <span class="level-chip" id="level-chip">Easy</span>
+              <span class="level-chip category-chip" id="category-chip">All</span>
             </div>
             <!-- Play mode: 10-slot right/wrong bar -->
             <div class="result-bar-wrap" id="result-bar-wrap" hidden>
@@ -161,6 +204,7 @@
 
         <div class="practice-tools" id="practice-tools" hidden>
           <button class="btn btn-mini" type="button" id="btn-prac-animal">Friend</button>
+          <button class="btn btn-mini" type="button" id="btn-prac-category">Topic</button>
           <button class="btn btn-mini" type="button" id="btn-prac-level">Level</button>
         </div>
 
@@ -232,7 +276,7 @@
             <button class="btn btn-icon" type="button" id="btn-stickers-back" aria-label="Back">←</button>
             <div class="sticker-book-heading">
               <h2 id="sticker-book-title">Sticker book</h2>
-              <p class="sticker-book-sub" id="sticker-book-sub">Play mode · 8+ correct unlocks 1</p>
+              <p class="sticker-book-sub" id="sticker-book-sub">Play mode · prize unlock</p>
             </div>
             <div class="sticker-book-actions">
               <span class="sticker-progress-chip" id="sticker-progress-chip">0/18</span>
@@ -261,6 +305,60 @@
         </div>
       </section>
 
+      <!-- Settings -->
+      <section class="screen screen-settings" id="screen-settings" aria-label="Settings" hidden>
+        <div class="settings-bg" aria-hidden="true"></div>
+        <div class="settings-panel">
+          <header class="sticker-book-top">
+            <button class="btn btn-icon" type="button" id="btn-settings-back" aria-label="Back">←</button>
+            <div class="sticker-book-heading">
+              <h2>Settings</h2>
+              <p class="sticker-book-sub">For grown-ups</p>
+            </div>
+            <span class="sticker-progress-chip" aria-hidden="true">⚙️</span>
+          </header>
+
+          <div class="settings-block">
+            <h3 class="settings-label">Play length</h3>
+            <div class="settings-options" id="opt-play-length" role="group" aria-label="Play length">
+              <button class="settings-chip" type="button" data-questions="5">5 questions</button>
+              <button class="settings-chip active" type="button" data-questions="10">10 questions</button>
+            </div>
+          </div>
+
+          <div class="settings-block">
+            <h3 class="settings-label">Prize unlock</h3>
+            <p class="settings-note" id="unlock-note">Need this many correct in one Play run</p>
+            <div class="settings-options" id="opt-unlock-min" role="group" aria-label="Unlock minimum">
+              <button class="settings-chip" type="button" data-unlock="5">5 correct</button>
+              <button class="settings-chip active" type="button" data-unlock="8">8 correct</button>
+            </div>
+          </div>
+
+          <div class="settings-block">
+            <h3 class="settings-label">Voice style</h3>
+            <p class="settings-note">Big pitch difference — tap each one to hear</p>
+            <div class="settings-options settings-options-voice" id="opt-voice-style" role="group" aria-label="Voice style">
+              <button class="settings-chip active" type="button" data-voice="kid">Kid girl ★</button>
+              <button class="settings-chip" type="button" data-voice="high">High pitch</button>
+              <button class="settings-chip" type="button" data-voice="soft">Soft lady</button>
+              <button class="settings-chip" type="button" data-voice="default">Normal</button>
+            </div>
+            <button class="btn btn-secondary btn-voice-test" type="button" id="btn-voice-test">▶ Test current voice</button>
+            <p class="settings-voice-name" id="settings-voice-name">Voice: auto</p>
+          </div>
+
+          <div class="settings-block">
+            <h3 class="settings-label">Pick a real voice</h3>
+            <p class="settings-note" id="voice-list-count">Loads voices from this phone / computer</p>
+            <div class="voice-list" id="voice-list" role="listbox" aria-label="Device voices"></div>
+            <p class="settings-note">Tip: on Windows try <strong>Zira</strong> or <strong>Jenny</strong>. On iPad try a female Siri English voice.</p>
+          </div>
+
+          <p class="settings-foot">Saved on this device</p>
+        </div>
+      </section>
+
       <!-- Music library -->
       <section class="screen screen-music" id="screen-music" aria-label="Song book" hidden>
         <div class="sticker-book-bg music-lib-bg" aria-hidden="true"></div>
@@ -269,7 +367,7 @@
             <button class="btn btn-icon" type="button" id="btn-music-back" aria-label="Back">←</button>
             <div class="sticker-book-heading">
               <h2>Song book</h2>
-              <p class="sticker-book-sub">Play mode · 8+ correct unlocks song or sticker</p>
+              <p class="sticker-book-sub">Play mode · prize unlock</p>
             </div>
             <div class="sticker-book-actions">
               <span class="sticker-progress-chip" id="music-progress-chip">0/8</span>
@@ -280,7 +378,7 @@
           <div class="music-list" id="music-list-free"></div>
           <p class="music-section-label">Unlock songs</p>
           <div class="music-list" id="music-list-unlock"></div>
-          <p class="sticker-hint" id="music-hint">Get 8+ correct in Play — sometimes a song, sometimes a sticker!</p>
+          <p class="sticker-hint" id="music-hint">Play for a prize — sometimes a song, sometimes a sticker!</p>
         </div>
       </section>
     </div>

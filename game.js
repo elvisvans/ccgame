@@ -1,12 +1,36 @@
 (() => {
   "use strict";
 
-  const PLAY_QUESTIONS = 10;
   const CHOICES_BY_LEVEL = { 1: 2, 2: 3, 3: 4 };
-  const STICKER_UNLOCK_MIN = 8;
+  const SETTINGS_STORAGE_KEY = "hb-settings-v1";
   const STICKER_STORAGE_KEY = "hb-stickers-v1";
   const MUSIC_STORAGE_KEY = "hb-music-v1";
   const STICKERS_PER_PAGE = 9;
+
+  const CATEGORIES = {
+    all: { id: "all", label: "All" },
+    food: { id: "food", label: "Food" },
+    feelings: { id: "feelings", label: "Feelings" },
+    home: { id: "home", label: "Home" },
+    playground: { id: "playground", label: "Playground" },
+    treats: { id: "treats", label: "Animal treats" },
+  };
+
+  const DEFAULT_SETTINGS = {
+    playQuestions: 10,
+    unlockMin: 8,
+    voiceStyle: "kid", // kid | high | soft | default | custom
+    voiceURI: "", // SpeechSynthesisVoice.voiceURI when custom
+  };
+
+  /** Distinct pitch/rate so presets sound different even on one engine voice */
+  const VOICE_PRESETS = {
+    kid: { pitch: 1.85, rate: 0.82, label: "Kid girl" },
+    high: { pitch: 2.0, rate: 0.95, label: "High pitch" },
+    soft: { pitch: 1.15, rate: 0.78, label: "Soft lady" },
+    default: { pitch: 1.0, rate: 1.0, label: "Normal" },
+    custom: { pitch: 1.55, rate: 0.88, label: "My voice" },
+  };
 
   /**
    * 2 books × 3×3 grid. Replace assets/stickers/p{page}-{slot}.png with your cartoon art.
@@ -1053,14 +1077,19 @@
     title: document.getElementById("screen-title"),
     pick: document.getElementById("screen-pick"),
     level: document.getElementById("screen-level"),
+    category: document.getElementById("screen-category"),
     play: document.getElementById("screen-play"),
     celebrate: document.getElementById("screen-celebrate"),
     stickers: document.getElementById("screen-stickers"),
     musicLib: document.getElementById("screen-music"),
+    settings: document.getElementById("screen-settings"),
     btnModePlay: document.getElementById("btn-mode-play"),
     btnModePractice: document.getElementById("btn-mode-practice"),
     btnStickers: document.getElementById("btn-stickers"),
     btnMusicLib: document.getElementById("btn-music-lib"),
+    btnSettings: document.getElementById("btn-settings"),
+    btnSettingsBack: document.getElementById("btn-settings-back"),
+    btnVoiceTest: document.getElementById("btn-voice-test"),
     btnCelebrateStickers: document.getElementById("btn-celebrate-stickers"),
     btnCelebrateMusic: document.getElementById("btn-celebrate-music"),
     btnStickersBack: document.getElementById("btn-stickers-back"),
@@ -1072,14 +1101,27 @@
     btnHome: document.getElementById("btn-home"),
     btnPickBack: document.getElementById("btn-pick-back"),
     btnLevelBack: document.getElementById("btn-level-back"),
+    btnCategoryBack: document.getElementById("btn-category-back"),
+    categoryGrid: document.getElementById("category-grid"),
     btnPracAnimal: document.getElementById("btn-prac-animal"),
     btnPracLevel: document.getElementById("btn-prac-level"),
+    btnPracCategory: document.getElementById("btn-prac-category"),
     btnSay: document.getElementById("btn-say"),
     btnMusic: document.getElementById("btn-music"),
     btnMusicPlay: document.getElementById("btn-music-play"),
+    playModeDesc: document.getElementById("play-mode-desc"),
+    settingsSummary: document.getElementById("settings-summary"),
+    settingsVoiceName: document.getElementById("settings-voice-name"),
+    unlockNote: document.getElementById("unlock-note"),
+    optPlayLength: document.getElementById("opt-play-length"),
+    optUnlockMin: document.getElementById("opt-unlock-min"),
+    optVoiceStyle: document.getElementById("opt-voice-style"),
+    voiceList: document.getElementById("voice-list"),
+    voiceListCount: document.getElementById("voice-list-count"),
     animalGrid: document.getElementById("animal-grid"),
     levelGrid: document.getElementById("level-grid"),
     levelChip: document.getElementById("level-chip"),
+    categoryChip: document.getElementById("category-chip"),
     modeChip: document.getElementById("mode-chip"),
     resultBarWrap: document.getElementById("result-bar-wrap"),
     resultBar: document.getElementById("result-bar"),
@@ -1140,6 +1182,7 @@
     musicOn: false,
     animalId: "bunny",
     level: 1,
+    category: "all",
     lastRoundId: null,
     recentRoundIds: [],
     lastTrackId: null,
@@ -1152,6 +1195,9 @@
     lastUnlockedSticker: null,
     /** @type {null | { type: string, item: object }} */
     lastReward: null,
+    settings: Object.assign({}, DEFAULT_SETTINGS),
+    /** @type {SpeechSynthesisVoice | null} */
+    chosenVoice: null,
     motionTimer: null,
     practiceSwap: false,
     /** @type {null | { id: string, feeling: string, prompt: string, praise: string, correctId: string, options: { id: string, label: string, emoji: string, icon?: string, cdn?: string }[] }} */
@@ -1184,15 +1230,317 @@
     return a;
   }
 
+  function playQuestions() {
+    return state.settings.playQuestions === 5 ? 5 : 10;
+  }
+
+  function unlockMin() {
+    const q = playQuestions();
+    if (q === 5) return 5;
+    return state.settings.unlockMin === 5 ? 5 : 8;
+  }
+
+  function loadSettings() {
+    try {
+      const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+      if (!raw) {
+        state.settings = Object.assign({}, DEFAULT_SETTINGS);
+        return;
+      }
+      const data = JSON.parse(raw);
+      const styles = ["kid", "high", "soft", "default", "custom"];
+      state.settings = {
+        playQuestions: data.playQuestions === 5 ? 5 : 10,
+        unlockMin: data.unlockMin === 5 ? 5 : 8,
+        voiceStyle: styles.indexOf(data.voiceStyle) >= 0 ? data.voiceStyle : "kid",
+        voiceURI: typeof data.voiceURI === "string" ? data.voiceURI : "",
+      };
+      // 5-question mode always unlocks at 5
+      if (state.settings.playQuestions === 5) state.settings.unlockMin = 5;
+    } catch (_) {
+      state.settings = Object.assign({}, DEFAULT_SETTINGS);
+    }
+  }
+
+  function saveSettings() {
+    try {
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(state.settings));
+    } catch (_) {}
+  }
+
+  function applySettingsToUI() {
+    const q = playQuestions();
+    const u = unlockMin();
+
+    if (el.optPlayLength) {
+      el.optPlayLength.querySelectorAll("[data-questions]").forEach((btn) => {
+        btn.classList.toggle("active", Number(btn.dataset.questions) === q);
+      });
+    }
+    if (el.optUnlockMin) {
+      el.optUnlockMin.querySelectorAll("[data-unlock]").forEach((btn) => {
+        const val = Number(btn.dataset.unlock);
+        btn.classList.toggle("active", val === u);
+        // Hide invalid combo: unlock 8 when play is 5
+        btn.hidden = q === 5 && val === 8;
+        btn.disabled = q === 5 && val === 8;
+      });
+    }
+    if (el.optVoiceStyle) {
+      el.optVoiceStyle.querySelectorAll("[data-voice]").forEach((btn) => {
+        const active =
+          state.settings.voiceStyle === "custom"
+            ? false
+            : btn.dataset.voice === state.settings.voiceStyle;
+        btn.classList.toggle("active", active);
+      });
+    }
+    if (el.playModeDesc) {
+      el.playModeDesc.textContent = `${q} questions · score bar`;
+    }
+    if (el.settingsSummary) {
+      el.settingsSummary.textContent = `Play ${q} · unlock at ${u}+ · ${voiceStyleLabel()}`;
+    }
+    if (el.unlockNote) {
+      el.unlockNote.textContent =
+        q === 5
+          ? "5-question Play: unlock prize with 5 correct"
+          : "Need this many correct in one 10-question Play run";
+    }
+    const bookSubs = document.querySelectorAll(".sticker-book-sub");
+    bookSubs.forEach((node) => {
+      if (node.closest("#screen-settings")) return;
+      node.textContent = `Play ${q} · unlock at ${u}+`;
+    });
+    updateVoiceNameLabel();
+  }
+
+  function voiceStyleLabel() {
+    const style = state.settings.voiceStyle || "kid";
+    if (style === "custom" && state.chosenVoice) {
+      return shortVoiceName(state.chosenVoice);
+    }
+    const m = VOICE_PRESETS[style];
+    return (m && m.label) || "Kid girl";
+  }
+
+  function shortVoiceName(v) {
+    if (!v) return "Unknown";
+    let n = v.name || "Voice";
+    n = n.replace(/^Microsoft\s+/i, "").replace(/\s+Online\s*\(Natural\)\s*/i, " ");
+    n = n.replace(/\s*-\s*English\s*\(.*\)\s*/i, "").trim();
+    if (n.length > 28) n = n.slice(0, 26) + "…";
+    return n;
+  }
+
+  function getAllVoices() {
+    if (!window.speechSynthesis) return [];
+    return window.speechSynthesis.getVoices() || [];
+  }
+
+  function getEnglishVoices() {
+    const all = getAllVoices();
+    const en = all.filter((v) => /^en\b/i.test(v.lang || ""));
+    return en.length ? en : all.slice();
+  }
+
+  function isLikelyFemale(v) {
+    const name = (v.name || "").toLowerCase();
+    if (/female|woman|girl|samantha|victoria|karen|moira|tessa|fiona|zira|susan|hazel|serena|allison|ava|kathy|princess|child|kids|junior|ivy|joanna|kendra|kimberly|salli|emma|amy|jenny|aria|natasha|linda|heather|catherine|veena|raveena|google uk english female|google us english|microsoft jenny|microsoft aria|microsoft sara|microsoft michelle|siri/.test(name)) {
+      return true;
+    }
+    if (/male|david|mark|daniel|james|george|tom|fred|ravi|thomas|richard|google uk english male|microsoft david|microsoft mark|microsoft guy|microsoft steffan/.test(name)) {
+      return false;
+    }
+    // Many mobile voices: prefer non-explicitly-male
+    return true;
+  }
+
+  function scoreVoice(v, style) {
+    const name = (v.name || "").toLowerCase();
+    const lang = (v.lang || "").toLowerCase();
+    let score = 0;
+    if (/^en\b/.test(lang)) score += 30;
+    if (/en-us|en_us/.test(lang)) score += 8;
+    if (/en-gb|en_gb|en-au|en_au|en-ie|en_ie/.test(lang)) score += 4;
+    if (isLikelyFemale(v)) score += 25;
+    else score -= 20;
+    if (v.localService) score += 3;
+
+    if (style === "kid") {
+      if (/child|kids|junior|girl|princess|ivy|salli|joanna/.test(name)) score += 20;
+      if (/zira|jenny|aria|samantha|karen|tessa|fiona|salli/.test(name)) score += 12;
+      if (/natural|neural|online/.test(name)) score += 4;
+    } else if (style === "high") {
+      // Prefer lighter / brighter named voices; different from soft
+      if (/zira|jenny|aria|ivy|salli|karen|tessa/.test(name)) score += 14;
+      if (/susan|hazel|victoria|moira|serena/.test(name)) score -= 4;
+    } else if (style === "soft") {
+      if (/samantha|victoria|moira|serena|susan|hazel|fiona|karen|catherine|linda/.test(name)) score += 16;
+      if (/zira|jenny|ivy|salli/.test(name)) score -= 2;
+    } else if (style === "default") {
+      if (v.default) score += 40;
+      score += 5;
+    }
+    return score;
+  }
+
+  function rankVoices(style) {
+    return getEnglishVoices()
+      .map((v) => ({ v, s: scoreVoice(v, style) }))
+      .sort((a, b) => b.s - a.s);
+  }
+
+  /** Pick different auto voices per style when possible */
+  function pickVoiceForStyle(style) {
+    const voices = getEnglishVoices();
+    if (!voices.length) return null;
+
+    if (style === "custom" && state.settings.voiceURI) {
+      const hit = getAllVoices().find((v) => v.voiceURI === state.settings.voiceURI);
+      if (hit) return hit;
+    }
+
+    if (style === "default") {
+      return (
+        voices.find((v) => v.default) ||
+        voices.find((v) => /en-us/i.test(v.lang)) ||
+        voices[0]
+      );
+    }
+
+    const kidRanked = rankVoices("kid");
+    const highRanked = rankVoices("high");
+    const softRanked = rankVoices("soft");
+    const kidTop = kidRanked[0] && kidRanked[0].v;
+    const kidURI = kidTop && kidTop.voiceURI;
+
+    if (style === "kid") return kidTop;
+
+    if (style === "high") {
+      const alt = highRanked.find((x) => x.v.voiceURI !== kidURI);
+      return (alt && alt.v) || (highRanked[0] && highRanked[0].v) || voices[0];
+    }
+
+    if (style === "soft") {
+      const highTop = highRanked.find((x) => x.v.voiceURI !== kidURI);
+      const highURI = highTop && highTop.v.voiceURI;
+      const alt = softRanked.find(
+        (x) => x.v.voiceURI !== kidURI && x.v.voiceURI !== highURI
+      );
+      return (
+        (alt && alt.v) ||
+        (highTop && highTop.v) ||
+        (softRanked[0] && softRanked[0].v) ||
+        voices[0]
+      );
+    }
+
+    return voices[0];
+  }
+
+  function getVoicePreset() {
+    const style = state.settings.voiceStyle || "kid";
+    return VOICE_PRESETS[style] || VOICE_PRESETS.kid;
+  }
+
+  function refreshChosenVoice() {
+    state.chosenVoice = pickVoiceForStyle(state.settings.voiceStyle);
+    updateVoiceNameLabel();
+    renderVoiceList();
+  }
+
+  function updateVoiceNameLabel() {
+    if (!el.settingsVoiceName) return;
+    const preset = getVoicePreset();
+    const pitch = preset.pitch.toFixed(2);
+    const rate = preset.rate.toFixed(2);
+    if (state.chosenVoice) {
+      el.settingsVoiceName.textContent =
+        `Now: ${shortVoiceName(state.chosenVoice)} · pitch ${pitch} · speed ${rate}`;
+    } else {
+      const n = getAllVoices().length;
+      el.settingsVoiceName.textContent =
+        n === 0
+          ? "Voices loading… tap Test again in a second"
+          : `Pitch ${pitch} · speed ${rate} (picking voice…)`;
+    }
+  }
+
+  function renderVoiceList() {
+    if (!el.voiceList) return;
+    const voices = getEnglishVoices();
+    if (el.voiceListCount) {
+      el.voiceListCount.textContent = voices.length
+        ? `${voices.length} English voices on this device`
+        : "No voices yet — open Settings after a tap, or wait 1s";
+    }
+    el.voiceList.innerHTML = "";
+    if (!voices.length) {
+      const empty = document.createElement("p");
+      empty.className = "voice-list-empty";
+      empty.textContent = "Tap anywhere, then reopen Settings to load voices.";
+      el.voiceList.appendChild(empty);
+      return;
+    }
+
+    // Female-ish first
+    const sorted = voices.slice().sort((a, b) => {
+      const fa = isLikelyFemale(a) ? 0 : 1;
+      const fb = isLikelyFemale(b) ? 0 : 1;
+      if (fa !== fb) return fa - fb;
+      return (a.name || "").localeCompare(b.name || "");
+    });
+
+    sorted.forEach((v) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "voice-pick-btn";
+      const selected =
+        state.settings.voiceStyle === "custom" &&
+        state.settings.voiceURI === v.voiceURI;
+      if (selected) btn.classList.add("active");
+      btn.dataset.uri = v.voiceURI;
+      const tag = isLikelyFemale(v) ? "♀" : "♂";
+      btn.innerHTML =
+        `<span class="voice-pick-name">${tag} ${shortVoiceName(v)}</span>` +
+        `<span class="voice-pick-lang">${v.lang || ""}</span>`;
+      btn.addEventListener("click", () => {
+        state.settings.voiceStyle = "custom";
+        state.settings.voiceURI = v.voiceURI;
+        state.chosenVoice = v;
+        saveSettings();
+        applySettingsToUI();
+        renderVoiceList();
+        sfxClick();
+        speak("Yay! This is my voice. Hello little friend!");
+      });
+      el.voiceList.appendChild(btn);
+    });
+  }
+
+  function openSettings() {
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    if (window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+    }
+    refreshChosenVoice();
+    applySettingsToUI();
+    showScreen("settings");
+    sfxClick();
+    setTimeout(() => refreshChosenVoice(), 100);
+  }
   function showScreen(name) {
     const map = {
       title: el.title,
       pick: el.pick,
       level: el.level,
+      category: el.category,
       play: el.play,
       celebrate: el.celebrate,
       stickers: el.stickers,
       music: el.musicLib,
+      settings: el.settings,
     };
     Object.entries(map).forEach(([key, node]) => {
       if (!node) return;
@@ -1310,7 +1658,7 @@
     state.lastUnlockedSticker = null;
     state.lastReward = null;
     if (!isPlayMode()) return null;
-    if (rights < STICKER_UNLOCK_MIN) return null;
+    if (rights < unlockMin()) return null;
 
     const sticker = nextLockedSticker();
     const music = nextLockedMusic();
@@ -1363,7 +1711,7 @@
       if (have >= total) {
         el.musicHint.textContent = "All songs unlocked! Tap one to play.";
       } else {
-        el.musicHint.textContent = `Play mode · 8+ correct · random sticker or song (${have}/${total} songs)`;
+        el.musicHint.textContent = `Play mode · ${unlockMin()}+ correct · random sticker or song (${have}/${total} songs)`;
       }
     }
     updateMusicProgressUI();
@@ -1414,8 +1762,7 @@
     el.btnMusic.setAttribute("aria-pressed", "true");
     el.btnMusicPlay.setAttribute("aria-pressed", "true");
     startLoadedMusic(0.32);
-    sfxPick();
-    speak(track.label);
+    sfxClick();
     renderMusicLibrary();
   }
 
@@ -1424,18 +1771,13 @@
     closeStickerViewer();
     renderMusicLibrary();
     showScreen("music");
-    const { have, total } = musicCount();
-    speak(
-      have >= total
-        ? "Song book is full! Pick a song!"
-        : `Song book! You unlocked ${have} special songs.`
-    );
+    sfxClick();
   }
 
   function resetMusicBook() {
     const { have } = musicCount();
     if (have === 0) {
-      speak("No songs to reset!");
+      sfxClick();
       return;
     }
     const ok = window.confirm("Reset unlock songs? Free soft music stays.");
@@ -1455,7 +1797,7 @@
     updateMusicProgressUI();
     renderMusicLibrary();
     sfxWrong();
-    speak("Unlock songs reset!");
+    sfxClick();
   }
 
   function renderStickerCell(sticker, unlocked, opts) {
@@ -1520,18 +1862,19 @@
     if (el.stickerViewerName) el.stickerViewerName.textContent = sticker.name;
     el.stickerViewer.hidden = false;
     el.stickerViewer.classList.add("open");
-    sfxPick();
-    speak(sticker.name);
+    sfxClick();
   }
 
   function closeStickerViewer() {
     if (!el.stickerViewer) return;
+    const wasOpen = !el.stickerViewer.hidden;
     el.stickerViewer.hidden = true;
     el.stickerViewer.classList.remove("open");
     if (el.stickerViewerImg) {
       el.stickerViewerImg.removeAttribute("src");
       el.stickerViewerImg.alt = "";
     }
+    if (wasOpen) sfxClick();
   }
 
   function renderStickerGrid() {
@@ -1559,7 +1902,7 @@
       if (have >= total) {
         el.stickerHint.textContent = "All stickers collected! You're a super star!";
       } else {
-        el.stickerHint.textContent = `Play 8+ correct · random sticker or song (${have}/${total} stickers)`;
+        el.stickerHint.textContent = `Play ${unlockMin()}+ correct · random sticker or song (${have}/${total} stickers)`;
       }
     }
     updateStickerProgressUI();
@@ -1568,7 +1911,7 @@
   function resetStickerBook() {
     const { have } = stickerCount();
     if (have === 0) {
-      speak("No stickers to reset!");
+      sfxClick();
       return;
     }
     const ok = window.confirm("Reset sticker book? All stickers will be locked again.");
@@ -1579,7 +1922,7 @@
     updateStickerProgressUI();
     renderStickerGrid();
     sfxWrong();
-    speak("Sticker book reset. Collect them again!");
+    sfxClick();
   }
 
   function openStickerBook(page) {
@@ -1594,12 +1937,7 @@
     }
     renderStickerGrid();
     showScreen("stickers");
-    const { have, total } = stickerCount();
-    speak(
-      have >= total
-        ? "Your sticker book is full! Amazing!"
-        : `Sticker book! You have ${have} stickers.`
-    );
+    sfxClick();
   }
 
   function showUnlockOnCelebrate(reward) {
@@ -1649,6 +1987,7 @@
   function updateLevelChip() {
     if (el.levelChip) el.levelChip.textContent = levelLabel();
     if (el.modeChip) el.modeChip.textContent = isPlayMode() ? "Play" : "Practice";
+    if (el.categoryChip) el.categoryChip.textContent = categoryLabel();
     if (el.choices) {
       el.choices.dataset.level = String(state.level);
       el.choices.classList.toggle("choices-l2", state.level === 2);
@@ -1658,13 +1997,24 @@
       el.play.classList.toggle("is-practice", !isPlayMode());
       el.play.classList.toggle("is-play-mode", isPlayMode());
     }
-    if (el.resultBarWrap) el.resultBarWrap.hidden = !isPlayMode();
-    if (el.practiceHud) el.practiceHud.hidden = isPlayMode();
-    if (el.practiceTools) el.practiceTools.hidden = isPlayMode();
+    // Play: score bar only · Practice: counter + friend/level tools only
+    const playOn = isPlayMode();
+    if (el.resultBarWrap) {
+      el.resultBarWrap.hidden = !playOn;
+      el.resultBarWrap.setAttribute("aria-hidden", playOn ? "false" : "true");
+    }
+    if (el.practiceHud) {
+      el.practiceHud.hidden = playOn;
+      el.practiceHud.setAttribute("aria-hidden", playOn ? "true" : "false");
+    }
+    if (el.practiceTools) {
+      el.practiceTools.hidden = playOn;
+      el.practiceTools.setAttribute("aria-hidden", playOn ? "true" : "false");
+    }
   }
 
   function initResultBar() {
-    state.results = Array.from({ length: PLAY_QUESTIONS }, () => "pending");
+    state.results = Array.from({ length: playQuestions() }, () => "pending");
     state.questionIndex = 0;
     renderResultBar();
   }
@@ -1684,7 +2034,7 @@
     const done = state.results.filter((r) => r !== "pending").length;
     if (el.resultCount) {
       const rights = state.results.filter((r) => r === "right").length;
-      el.resultCount.textContent = `${done} / ${PLAY_QUESTIONS} · ✓${rights}`;
+      el.resultCount.textContent = `${done} / ${playQuestions()} · ✓${rights}`;
     }
   }
 
@@ -1792,6 +2142,12 @@
   function sfxPick() {
     tone(659.25, 0.1, "sine", 0.07);
     setTimeout(() => tone(880, 0.14, "sine", 0.08), 70);
+  }
+
+  /** Short UI tap / click feel */
+  function sfxClick() {
+    tone(880, 0.045, "sine", 0.055);
+    setTimeout(() => tone(1174.66, 0.04, "triangle", 0.035), 28);
   }
 
   function stopMusic() {
@@ -1968,22 +2324,37 @@
     try {
       window.speechSynthesis.cancel();
     } catch (_) {}
+
+    // Always refresh voice list; Chrome often returns [] until after a gesture
+    const voicesNow = getAllVoices();
+    if (voicesNow.length && !state.chosenVoice) refreshChosenVoice();
+    else if (voicesNow.length && state.settings.voiceStyle === "custom" && state.settings.voiceURI) {
+      const hit = voicesNow.find((v) => v.voiceURI === state.settings.voiceURI);
+      if (hit) state.chosenVoice = hit;
+    } else if (voicesNow.length && !state.chosenVoice) {
+      state.chosenVoice = pickVoiceForStyle(state.settings.voiceStyle);
+    }
+
+    const preset = getVoicePreset();
     const u = new SpeechSynthesisUtterance(text);
-    u.rate = 0.9;
-    u.pitch = 1.15;
-    u.lang = "en-US";
-    const voices = window.speechSynthesis.getVoices();
-    const preferred =
-      voices.find((v) => /en(-|_)US/i.test(v.lang) && /female|samantha|zira|google|siri/i.test(v.name)) ||
-      voices.find((v) => /en(-|_)GB/i.test(v.lang)) ||
-      voices.find((v) => /en/i.test(v.lang));
-    if (preferred) u.voice = preferred;
-    // iOS sometimes needs a tick after cancel
+    u.lang = (state.chosenVoice && state.chosenVoice.lang) || "en-US";
+    // Big gaps so presets are obviously different (range 0–2 for pitch)
+    u.pitch = Math.max(0.1, Math.min(2, preset.pitch));
+    u.rate = Math.max(0.1, Math.min(2, preset.rate));
+    u.volume = 1;
+    if (state.chosenVoice) {
+      try {
+        u.voice = state.chosenVoice;
+      } catch (_) {}
+    }
+
+    // iOS: cancel then speak on next tick; assign voice again
     setTimeout(() => {
       try {
+        if (state.chosenVoice) u.voice = state.chosenVoice;
         window.speechSynthesis.speak(u);
       } catch (_) {}
-    }, 20);
+    }, 40);
   }
 
   function unlockAudio() {
@@ -2082,11 +2453,79 @@
     }
   }
 
+  function categoryLabel() {
+    const cat = CATEGORIES[state.category] || CATEGORIES.all;
+    return cat.label;
+  }
+
+  function resolveRoundCategory(r) {
+    if (r.category) return r.category;
+    if (r.animals && r.animals.length) return "treats";
+    const id = String(r.id || "");
+    const feeling = String(r.feeling || "");
+
+    // Animal-specific treats
+    if (/cat-fish|dog-bone|bunny-carrot|pig-|shark-|bear-/.test(id)) return "treats";
+
+    // Explicit feelings practice / emotion rounds
+    if (
+      /^feel-/.test(id) ||
+      /emotion|angry|scared|love|surprised/.test(id) ||
+      id === "sad" ||
+      id === "sad-hug-soft"
+    ) {
+      return "feelings";
+    }
+
+    // Home / routines / furniture
+    if (
+      /^home-/.test(id) ||
+      /^adv-sit|^adv-watch|^adv-read|^adv-open|^adv-look|^adv-light|^adv-call|^adv-sit-not/.test(id) ||
+      /night-bed|cold-hat|cold-day|wash-soap|teeth-brush|dirty|brush$|walk-shoes|sleepy$|sleepy-moon/.test(id)
+    ) {
+      return "home";
+    }
+
+    // Playground / outdoor play
+    if (
+      /^play-/.test(id) ||
+      /^adv-merry|^adv-slide|^adv-park|^adv-drive|^adv-playground/.test(id) ||
+      /find-ball|play-or-sleep|happy-ball|happy-play|play-toy|morning-sun|day-sun/.test(id)
+    ) {
+      return "playground";
+    }
+
+    // Food & drink
+    if (
+      /^food-/.test(id) ||
+      /hungry|thirsty|drink|find-milk|find-banana|find-apple|adv-ice|fruit|cookie|water-only/.test(id)
+    ) {
+      return "food";
+    }
+
+    if (feeling === "hungry" || feeling === "thirsty") return "food";
+    if (feeling === "sleepy") return "home";
+    if (
+      feeling === "sad" ||
+      feeling === "angry" ||
+      feeling === "scared" ||
+      feeling === "love" ||
+      feeling === "surprised"
+    ) {
+      return "feelings";
+    }
+    if (feeling === "happy") return "playground";
+    return "all";
+  }
+
   function availableRounds() {
     return ROUND_TEMPLATES.filter((r) => {
       if (r.animals && !r.animals.includes(state.animalId)) return false;
       const min = r.minLevel || 1;
       if (state.level < min) return false;
+      if (state.category && state.category !== "all") {
+        if (resolveRoundCategory(r) !== state.category) return false;
+      }
       return true;
     });
   }
@@ -2094,6 +2533,20 @@
   function buildRound() {
     clearMotion();
     let pool = availableRounds();
+    // If category is too narrow for this animal/level, fall back to All
+    if (!pool.length && state.category !== "all") {
+      const saved = state.category;
+      state.category = "all";
+      pool = availableRounds();
+      state.category = saved;
+    }
+    if (!pool.length) {
+      pool = ROUND_TEMPLATES.filter((r) => {
+        if (r.animals && !r.animals.includes(state.animalId)) return false;
+        const min = r.minLevel || 1;
+        return state.level >= min;
+      });
+    }
     const avoid = new Set(state.recentRoundIds);
     let filtered = pool.filter((r) => !avoid.has(r.id));
     if (!filtered.length) {
@@ -2239,7 +2692,7 @@
 
       if (isPlayMode()) {
         const idx = state.questionIndex;
-        if (idx < PLAY_QUESTIONS) {
+        if (idx < playQuestions()) {
           state.results[idx] = state.questionMissed ? "wrong" : "right";
           renderResultBar();
         }
@@ -2253,7 +2706,7 @@
         clearMotion();
         if (isPlayMode()) {
           state.questionIndex += 1;
-          if (state.questionIndex >= PLAY_QUESTIONS) {
+          if (state.questionIndex >= playQuestions()) {
             winSession();
           } else {
             buildRound();
@@ -2289,7 +2742,8 @@
     sfxCelebrate();
     const name = animal().name;
     const rights = state.results.filter((r) => r === "right").length;
-    const total = PLAY_QUESTIONS;
+    const total = playQuestions();
+    const need = unlockMin();
 
     if (el.scoreSummary) el.scoreSummary.hidden = false;
     if (el.resultBarFinal) {
@@ -2303,8 +2757,9 @@
     }
     if (el.scoreLine) el.scoreLine.textContent = `${rights} / ${total} correct`;
     if (el.celebrateTitle) {
+      const almost = total === 5 ? 4 : 7;
       el.celebrateTitle.textContent =
-        rights === total ? "Perfect!" : rights >= 7 ? "Great job!" : "Nice try!";
+        rights === total ? "Perfect!" : rights >= almost ? "Great job!" : "Nice try!";
     }
 
     const reward = tryUnlockRewardFromPlay(rights);
@@ -2312,35 +2767,15 @@
 
     if (reward && reward.type === "sticker") {
       el.celebrateMsg.textContent = `${name} is proud! ${rights}/${total} · New sticker: ${reward.item.name}!`;
-      speak(
-        rights === total
-          ? `Perfect! New sticker! ${reward.item.name}!`
-          : `Great job! You unlocked sticker ${reward.item.name}!`
-      );
     } else if (reward && reward.type === "music") {
       el.celebrateMsg.textContent = `${name} is proud! ${rights}/${total} · New song: ${reward.item.label}!`;
-      speak(
-        rights === total
-          ? `Perfect! New song! ${reward.item.label}!`
-          : `Great job! You unlocked the song ${reward.item.label}!`
-      );
-      // Auto-play new song once
       playSelectedTrack(reward.item);
-    } else if (
-      rights >= STICKER_UNLOCK_MIN &&
-      !nextLockedSticker() &&
-      !nextLockedMusic()
-    ) {
+    } else if (rights >= need && !nextLockedSticker() && !nextLockedMusic()) {
       el.celebrateMsg.textContent = `${name} is proud! ${rights}/${total}. Everything unlocked!`;
-      speak(`Amazing! ${rights} out of ${total}. You collected everything!`);
-    } else if (rights < STICKER_UNLOCK_MIN) {
-      el.celebrateMsg.textContent = `${name} is proud! ${rights}/${total}. Get ${STICKER_UNLOCK_MIN}+ for a prize!`;
-      speak(
-        `All done! You got ${rights} out of ${total}. Get ${STICKER_UNLOCK_MIN} or more to unlock a sticker or song!`
-      );
+    } else if (rights < need) {
+      el.celebrateMsg.textContent = `${name} is proud! ${rights}/${total}. Get ${need}+ for a prize!`;
     } else {
       el.celebrateMsg.textContent = `${name} is proud! You got ${rights} out of ${total}.`;
-      speak(`All done! You got ${rights} out of ${total}. Great job!`);
     }
   }
 
@@ -2352,6 +2787,7 @@
   function selectMode(mode) {
     ensureAudio();
     state.mode = mode === "practice" ? "practice" : "play";
+    sfxClick();
     openPick();
   }
 
@@ -2359,24 +2795,28 @@
     ensureAudio();
     window.speechSynthesis && window.speechSynthesis.cancel();
     showScreen("pick");
-    speak("Who is your buddy?");
+    sfxClick();
   }
 
   function openLevel() {
     ensureAudio();
     window.speechSynthesis && window.speechSynthesis.cancel();
     showScreen("level");
-    speak(
-      isPlayMode()
-        ? "Easy, level two, or advanced? Ten questions!"
-        : "Easy, level two, or advanced?"
-    );
+    const q = playQuestions();
+sfxClick();
   }
 
   function startGameWithAnimal(animalId) {
     ensureAudio();
     setAnimal(animalId);
-    openLevel();
+    openCategory();
+  }
+
+  function openCategory() {
+    ensureAudio();
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    showScreen("category");
+    sfxClick();
   }
 
   function beginPlay() {
@@ -2395,20 +2835,17 @@
     }
     updateLevelChip();
     updatePracticeHud();
-    sfxPick();
     if (state.musicOn) startMusic(true);
     showScreen("play");
     if (el.scoreSummary) el.scoreSummary.hidden = true;
-    const modeWords = isPlayMode() ? "Play mode. Ten questions." : "Practice mode.";
-    const levelWords =
-      state.level === 3 ? "Advanced!" : state.level === 2 ? "Level two!" : "Easy!";
-    speak(`${animal().name}! ${modeWords} ${levelWords}`);
-    setTimeout(() => buildRound(), 700);
+    sfxClick();
+    setTimeout(() => buildRound(), 500);
   }
 
   function goHome() {
     window.speechSynthesis && window.speechSynthesis.cancel();
     showScreen("title");
+    sfxClick();
   }
 
   // Events
@@ -2422,6 +2859,72 @@
   }
   if (el.btnMusicLib) {
     el.btnMusicLib.addEventListener("click", openMusicLibrary);
+  }
+  if (el.btnSettings) {
+    el.btnSettings.addEventListener("click", openSettings);
+  }
+  if (el.btnSettingsBack) {
+    el.btnSettingsBack.addEventListener("click", () => {
+      applySettingsToUI();
+      goHome();
+    });
+  }
+  if (el.btnVoiceTest) {
+    el.btnVoiceTest.addEventListener("click", () => {
+      if (window.speechSynthesis) window.speechSynthesis.getVoices();
+      refreshChosenVoice();
+      const style = state.settings.voiceStyle || "kid";
+      if (style === "kid") speak("Yay! Kid girl voice. One banana two apples!");
+      else if (style === "high") speak("High pitch! Hello baby! Find the ball!");
+      else if (style === "soft") speak("Soft voice. Time for a gentle story.");
+      else if (style === "custom") speak("This is the voice you picked. Hello little friend!");
+      else speak("Normal default voice. Hello.");
+    });
+  }
+  if (el.optPlayLength) {
+    el.optPlayLength.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-questions]");
+      if (!btn) return;
+      const q = Number(btn.dataset.questions);
+      if (q !== 5 && q !== 10) return;
+      state.settings.playQuestions = q;
+      if (q === 5) state.settings.unlockMin = 5;
+      saveSettings();
+      applySettingsToUI();
+      sfxClick();
+    });
+  }
+  if (el.optUnlockMin) {
+    el.optUnlockMin.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-unlock]");
+      if (!btn || btn.disabled || btn.hidden) return;
+      const u = Number(btn.dataset.unlock);
+      if (u !== 5 && u !== 8) return;
+      if (playQuestions() === 5 && u === 8) return;
+      state.settings.unlockMin = u;
+      saveSettings();
+      applySettingsToUI();
+      sfxClick();
+    });
+  }
+  if (el.optVoiceStyle) {
+    el.optVoiceStyle.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-voice]");
+      if (!btn) return;
+      const style = btn.dataset.voice;
+      if (["kid", "high", "soft", "default"].indexOf(style) < 0) return;
+      state.settings.voiceStyle = style;
+      if (style !== "custom") state.settings.voiceURI = "";
+      saveSettings();
+      refreshChosenVoice();
+      applySettingsToUI();
+      sfxClick();
+      // Different sample lines so pitch/speed difference is obvious
+      if (style === "kid") speak("Yay! I am the kid girl voice. Let's play!");
+      else if (style === "high") speak("Hi! This is the high pitch voice. Hello baby!");
+      else if (style === "soft") speak("Hello. This is the soft gentle voice.");
+      else speak("This is the normal default voice.");
+    });
   }
   if (el.btnCelebrateStickers) {
     el.btnCelebrateStickers.addEventListener("click", () => openStickerBook());
@@ -2456,7 +2959,7 @@
       state.stickerPage = p;
       state.lastUnlockedSticker = null;
       renderStickerGrid();
-      sfxPick();
+      sfxClick();
     });
   });
   el.btnAgain.addEventListener("click", () => {
@@ -2475,14 +2978,22 @@
   el.btnHome.addEventListener("click", goHome);
   el.btnPickBack.addEventListener("click", goHome);
   if (el.btnLevelBack) {
-    el.btnLevelBack.addEventListener("click", openPick);
+    el.btnLevelBack.addEventListener("click", () => {
+      if (state.practiceSwap && !isPlayMode()) {
+        state.practiceSwap = false;
+        showScreen("play");
+        sfxClick();
+        return;
+      }
+      openCategory();
+    });
   }
   if (el.btnPracAnimal) {
     el.btnPracAnimal.addEventListener("click", () => {
       window.speechSynthesis && window.speechSynthesis.cancel();
       state.practiceSwap = true;
       showScreen("pick");
-      speak("Pick a new friend!");
+      sfxClick();
     });
   }
   if (el.btnPracLevel) {
@@ -2490,7 +3001,44 @@
       window.speechSynthesis && window.speechSynthesis.cancel();
       state.practiceSwap = true;
       showScreen("level");
-      speak("Easy, level two, or advanced?");
+      sfxClick();
+    });
+  }
+  if (el.btnPracCategory) {
+    el.btnPracCategory.addEventListener("click", () => {
+      window.speechSynthesis && window.speechSynthesis.cancel();
+      state.practiceSwap = true;
+      showScreen("category");
+      sfxClick();
+    });
+  }
+  if (el.btnCategoryBack) {
+    el.btnCategoryBack.addEventListener("click", () => {
+      if (state.practiceSwap && !isPlayMode()) {
+        state.practiceSwap = false;
+        showScreen("play");
+        sfxClick();
+        return;
+      }
+      openPick();
+    });
+  }
+  if (el.categoryGrid) {
+    el.categoryGrid.addEventListener("click", (e) => {
+      const card = e.target.closest("[data-category]");
+      if (!card) return;
+      const cat = card.dataset.category;
+      if (!cat || !(cat in CATEGORIES)) return;
+      state.category = cat;
+      sfxClick();
+      if (state.practiceSwap && !isPlayMode()) {
+        state.practiceSwap = false;
+        updateLevelChip();
+        showScreen("play");
+        setTimeout(() => buildRound(), 400);
+        return;
+      }
+      openLevel();
     });
   }
   if (el.levelGrid) {
@@ -2504,8 +3052,7 @@
         state.practiceSwap = false;
         updateLevelChip();
         showScreen("play");
-        sfxPick();
-        speak(`${levelLabel()}! Keep practicing!`);
+        sfxClick();
         setTimeout(() => buildRound(), 500);
         return;
       }
@@ -2516,8 +3063,8 @@
   el.btnSay.addEventListener("click", () => {
     if (state.round) speak(state.round.prompt);
   });
-  el.btnMusic.addEventListener("click", () => setMusic(!state.musicOn));
-  el.btnMusicPlay.addEventListener("click", () => setMusic(!state.musicOn));
+  el.btnMusic.addEventListener("click", () => { sfxClick(); setMusic(!state.musicOn); });
+  el.btnMusicPlay.addEventListener("click", () => { sfxClick(); setMusic(!state.musicOn); });
 
   el.animalGrid.addEventListener("click", (e) => {
     const card = e.target.closest(".animal-card");
@@ -2529,18 +3076,13 @@
       state.practiceSwap = false;
       updateLevelChip();
       showScreen("play");
-      sfxPick();
-      speak(`${animal().name}! Keep practicing!`);
+      sfxClick();
       setTimeout(() => buildRound(), 500);
       return;
     }
+    sfxClick();
     startGameWithAnimal(id);
   });
-
-  if (window.speechSynthesis) {
-    window.speechSynthesis.getVoices();
-    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-  }
 
   // First user gesture unlocks WebAudio + speech on iPad
   let audioUnlocked = false;
@@ -2548,30 +3090,30 @@
     if (audioUnlocked) return;
     audioUnlocked = true;
     unlockAudio();
+    refreshChosenVoice();
     document.removeEventListener("touchstart", unlockOnce, true);
     document.removeEventListener("pointerdown", unlockOnce, true);
   };
   document.addEventListener("touchstart", unlockOnce, { capture: true, passive: true });
   document.addEventListener("pointerdown", unlockOnce, { capture: true });
 
-  // Reduce double-tap zoom delay on older iOS
-  document.addEventListener(
-    "touchend",
-    (e) => {
-      const t = e.target;
-      if (t && (t.closest("button") || t.closest("a"))) {
-        /* allow button clicks */
-      }
-    },
-    { passive: true }
-  );
-
   if (isStandalone()) document.body.classList.add("ios-standalone");
 
+  loadSettings();
   loadStickers();
   loadMusicUnlocks();
+  refreshChosenVoice();
+  applySettingsToUI();
   updateStickerProgressUI();
   updateMusicProgressUI();
+
+  if (window.speechSynthesis) {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => {
+      refreshChosenVoice();
+    };
+  }
+
   setAnimal("bunny");
   showScreen("title");
 })();
