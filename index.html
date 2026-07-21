@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#b8e0d2">
+    <meta name="color-scheme" content="light">
+    <meta name="description" content="Learn English with cute animal friends. Play and practice for ages 3+.">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Happy Buddy">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="application-name" content="Happy Buddy">
+    <title>Chacha's Happy Buddy</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body class="ios-ready">
+    <div class="app" id="app">
+      <audio id="bg-music" loop preload="auto" playsinline webkit-playsinline></audio>
+
+      <!-- Title / mode select -->
+      <section class="screen screen-title active" id="screen-title" aria-label="Title">
+        <div class="title-bg" aria-hidden="true"></div>
+        <div class="title-content">
+          <p class="title-kicker">For little helpers</p>
+          <h1>Chacha's<br>Happy Buddy</h1>
+          <div class="buddy-preview" id="title-buddy" aria-hidden="true">
+            <img class="animal-art bounce-soft" src="assets/animals/bunny.svg" alt="" width="160" height="160">
+          </div>
+          <p class="title-tagline">Pick a mode to start!</p>
+          <div class="mode-grid" id="mode-grid" role="group" aria-label="Game mode">
+            <button class="mode-card mode-card-play" type="button" id="btn-mode-play" data-mode="play">
+              <span class="mode-emoji" aria-hidden="true">🏆</span>
+              <span class="mode-name">Play</span>
+              <span class="mode-desc">10 questions · score bar</span>
+            </button>
+            <button class="mode-card mode-card-practice" type="button" id="btn-mode-practice" data-mode="practice">
+              <span class="mode-emoji" aria-hidden="true">🌈</span>
+              <span class="mode-name">Practice</span>
+              <span class="mode-desc">Free play · no limit</span>
+            </button>
+          </div>
+          <button class="btn btn-ghost btn-music" type="button" id="btn-music" aria-pressed="false">
+            <span class="music-icon" aria-hidden="true">♪</span>
+            <span>Music</span>
+            <span class="music-track" id="music-label"></span>
+          </button>
+          <p class="credit-line">Art: Openmoji (CC BY-SA 4.0) · Music: original soft loops</p>
+        </div>
+      </section>
+
+      <!-- Animal pick -->
+      <section class="screen screen-pick" id="screen-pick" aria-label="Choose a friend" hidden>
+        <div class="pick-bg" aria-hidden="true"></div>
+        <div class="pick-content">
+          <button class="btn btn-icon pick-back" type="button" id="btn-pick-back" aria-label="Back">←</button>
+          <h2 class="pick-title">Who is your buddy?</h2>
+          <p class="pick-sub" id="pick-sub">Tap one friend</p>
+          <div class="animal-grid" id="animal-grid" role="group" aria-label="Animals">
+            <button class="animal-card" type="button" data-animal="bunny" aria-label="Bunny">
+              <img class="animal-art" src="assets/animals/bunny.svg" alt="" width="120" height="120">
+              <span class="animal-name">Bunny</span>
+            </button>
+            <button class="animal-card" type="button" data-animal="cat" aria-label="Cat">
+              <img class="animal-art" src="assets/animals/cat.svg" alt="" width="120" height="120">
+              <span class="animal-name">Cat</span>
+            </button>
+            <button class="animal-card" type="button" data-animal="dog" aria-label="Dog">
+              <img class="animal-art" src="assets/animals/dog.svg" alt="" width="120" height="120">
+              <span class="animal-name">Dog</span>
+            </button>
+            <button class="animal-card" type="button" data-animal="pig" aria-label="Piggy">
+              <img class="animal-art" src="assets/animals/pig.svg" alt="" width="120" height="120">
+              <span class="animal-name">Piggy</span>
+            </button>
+            <button class="animal-card" type="button" data-animal="shark" aria-label="Baby Shark">
+              <img class="animal-art" src="assets/animals/shark.svg" alt="" width="120" height="120">
+              <span class="animal-name">Baby Shark</span>
+            </button>
+            <button class="animal-card" type="button" data-animal="bear" aria-label="Bear">
+              <img class="animal-art" src="assets/animals/bear.svg" alt="" width="120" height="120">
+              <span class="animal-name">Bear</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Level pick -->
+      <section class="screen screen-level" id="screen-level" aria-label="Choose level" hidden>
+        <div class="pick-bg" aria-hidden="true"></div>
+        <div class="pick-content">
+          <button class="btn btn-icon pick-back" type="button" id="btn-level-back" aria-label="Back">←</button>
+          <h2 class="pick-title">Pick a level</h2>
+          <p class="pick-sub" id="level-sub">How many choices?</p>
+          <div class="level-grid level-grid-3" id="level-grid" role="group" aria-label="Levels">
+            <button class="level-card" type="button" data-level="1" aria-label="Easy, two choices">
+              <span class="level-num">1</span>
+              <span class="level-name">Easy</span>
+              <span class="level-desc">2 choices</span>
+              <span class="level-dots" aria-hidden="true">● ●</span>
+            </button>
+            <button class="level-card level-card-hot" type="button" data-level="2" aria-label="Level 2, three choices">
+              <span class="level-num">2</span>
+              <span class="level-name">Level 2</span>
+              <span class="level-desc">3 choices</span>
+              <span class="level-dots" aria-hidden="true">● ● ●</span>
+            </button>
+            <button class="level-card level-card-adv" type="button" data-level="3" aria-label="Advanced, four choices">
+              <span class="level-num">3</span>
+              <span class="level-name">Advanced</span>
+              <span class="level-desc">4 choices + hard</span>
+              <span class="level-dots" aria-hidden="true">● ● ● ●</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Play -->
+      <section class="screen screen-play" id="screen-play" aria-label="Play" hidden>
+        <header class="play-top">
+          <button class="btn btn-icon" type="button" id="btn-home" aria-label="Go home">⌂</button>
+          <div class="hud-center">
+            <div class="hud-meta">
+              <span class="mode-chip" id="mode-chip">Play</span>
+              <span class="level-chip" id="level-chip">Easy</span>
+            </div>
+            <!-- Play mode: 10-slot right/wrong bar -->
+            <div class="result-bar-wrap" id="result-bar-wrap" hidden>
+              <div class="result-bar" id="result-bar" aria-label="Question results"></div>
+              <p class="result-count" id="result-count">0 / 10</p>
+            </div>
+            <!-- Practice mode: free counter -->
+            <div class="practice-hud" id="practice-hud" hidden>
+              <span class="practice-label">Practice</span>
+              <strong id="practice-count">0</strong>
+              <span class="practice-ok" id="practice-ok">✓ 0</span>
+            </div>
+          </div>
+          <button class="btn btn-icon" type="button" id="btn-music-play" aria-label="Toggle music" aria-pressed="false">♪</button>
+        </header>
+
+        <div class="practice-tools" id="practice-tools" hidden>
+          <button class="btn btn-mini" type="button" id="btn-prac-animal">Friend</button>
+          <button class="btn btn-mini" type="button" id="btn-prac-level">Level</button>
+        </div>
+
+        <div class="room">
+          <div class="room-floor" aria-hidden="true"></div>
+          <div class="room-props" aria-hidden="true">
+            <div class="prop pillow"></div>
+            <div class="prop bowl"></div>
+          </div>
+
+          <div class="buddy-stage">
+            <div class="buddy idle-bob" id="buddy" data-feeling="happy" data-animal="bunny">
+              <div class="animal-wrap" id="buddy-wrap">
+                <img class="animal-art animal-main" id="buddy-img" src="assets/animals/bunny.svg" alt="Buddy" width="200" height="200">
+                <img class="feeling-badge" id="feeling-badge" src="assets/items/happy.svg" alt="" width="40" height="40" aria-hidden="true">
+                <span class="zzz-float" id="zzz-float" aria-hidden="true">z z</span>
+                <div class="motion-fx" id="motion-fx" aria-hidden="true"></div>
+              </div>
+              <div class="sparkles" id="sparkles" aria-hidden="true"></div>
+            </div>
+            <p class="feeling-chip" id="feeling-chip">happy</p>
+          </div>
+
+          <div class="prompt-bar">
+            <button class="btn btn-sound" type="button" id="btn-say" aria-label="Say again">
+              <span aria-hidden="true">🔊</span>
+            </button>
+            <p class="prompt-text" id="prompt-text">Bunny is happy!</p>
+          </div>
+        </div>
+
+        <div class="choices" id="choices" role="group" aria-label="Choices">
+          <!-- filled by JS -->
+        </div>
+      </section>
+
+      <!-- Celebrate -->
+      <section class="screen screen-celebrate" id="screen-celebrate" aria-label="Celebration" hidden>
+        <div class="celebrate-bg" aria-hidden="true"></div>
+        <div class="confetti" id="confetti" aria-hidden="true"></div>
+        <div class="celebrate-content">
+          <img class="animal-art animal-celebrate bounce-soft" id="celebrate-buddy" src="assets/animals/bunny.svg" alt="" width="180" height="180">
+          <h2 id="celebrate-title">All done!</h2>
+          <div class="score-summary" id="score-summary" hidden>
+            <div class="result-bar result-bar-final" id="result-bar-final" aria-hidden="true"></div>
+            <p class="score-line" id="score-line">10 / 10</p>
+          </div>
+          <p id="celebrate-msg">You're a great friend!</p>
+          <div class="celebrate-actions">
+            <button class="btn btn-primary btn-xl" type="button" id="btn-again">Play again</button>
+            <button class="btn btn-secondary" type="button" id="btn-switch">New friend</button>
+            <button class="btn btn-ghost" type="button" id="btn-bye">Home</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="game.js"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("./sw.js").catch(function () {});
+        });
+      }
+    </script>
+  </body>
+</html>
