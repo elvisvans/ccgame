@@ -467,6 +467,554 @@ button {
   font-weight: 700;
 }
 
+/* Collect buttons on title */
+.collect-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  max-width: 400px;
+  margin-top: 4px;
+}
+
+.btn-stickers,
+.btn-music-lib {
+  min-width: 0;
+  width: 100%;
+  gap: 6px;
+  margin-top: 0;
+  flex-direction: column;
+  min-height: 72px;
+  padding: 10px 8px;
+  font-size: 0.95rem;
+}
+
+.sticker-progress {
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Unlock banner on celebrate */
+.sticker-unlock-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 280px;
+  padding: 12px 14px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fff8d6, #ffe0a8);
+  box-shadow: 0 6px 0 var(--shadow);
+  animation: sticker-pop 0.55s ease;
+}
+
+.sticker-unlock-banner.is-music {
+  background: linear-gradient(180deg, #e0f4ff, #c8e4ff);
+}
+
+.music-unlock-badge {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  box-shadow: 0 4px 0 var(--shadow);
+}
+
+.music-unlock-note {
+  font-size: 2.4rem;
+  line-height: 1;
+}
+
+.sticker-unlock-banner[hidden] {
+  display: none !important;
+}
+
+.sticker-unlock-label {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #b86b00;
+}
+
+.sticker-unlock-preview {
+  width: 100px;
+}
+
+.sticker-unlock-preview .sticker-cell {
+  min-height: 0;
+}
+
+.sticker-unlock-name {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+@keyframes sticker-pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* Sticker book screen */
+.screen-stickers {
+  background: linear-gradient(165deg, #ffe8c8 0%, #f5d0e8 45%, #c8e8f5 100%);
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+.sticker-book-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(255, 255, 255, 0.45) 0 10%, transparent 11%),
+    radial-gradient(circle at 88% 70%, rgba(255, 224, 102, 0.35) 0 12%, transparent 13%);
+  pointer-events: none;
+}
+
+.sticker-book {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.sticker-book-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.sticker-book-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sticker-book-heading {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.sticker-book-heading h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.sticker-book-sub {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.sticker-progress-chip {
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 3px 0 var(--shadow);
+  flex-shrink: 0;
+}
+
+.sticker-page-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sticker-tab {
+  min-height: 48px;
+  border-radius: 16px;
+  border: 3px solid transparent;
+  background: rgba(255, 255, 255, 0.65);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--ink-soft);
+  box-shadow: 0 4px 0 var(--shadow);
+}
+
+.sticker-tab.active {
+  background: #fff;
+  color: var(--ink);
+  border-color: var(--orange);
+}
+
+.sticker-tab:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--shadow);
+}
+
+.sticker-page-label {
+  text-align: center;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+
+.sticker-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 10px;
+  min-height: 0;
+  padding: 4px 2px 8px;
+}
+
+.sticker-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  color: inherit;
+  cursor: default;
+}
+
+button.sticker-cell.unlocked {
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+button.sticker-cell.unlocked:active .sticker-face {
+  transform: scale(0.96);
+}
+
+.sticker-face {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: 100%;
+  border-radius: 18px;
+  background: #fffaf3;
+  border: 3px dashed rgba(61, 44, 41, 0.15);
+  box-shadow: 0 5px 0 var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: transform 0.12s ease;
+}
+
+.sticker-cell.unlocked .sticker-face {
+  border-style: solid;
+  border-color: rgba(255, 179, 71, 0.55);
+  background: linear-gradient(180deg, #fff, #fff6e0);
+}
+
+/* Fully blocked locked slot — no art peek */
+.sticker-cell.locked .sticker-face {
+  background: linear-gradient(160deg, #d8d2c8 0%, #c4bdb2 55%, #b5aea4 100%);
+  border-style: solid;
+  border-color: rgba(61, 44, 41, 0.12);
+  box-shadow:
+    inset 0 2px 8px rgba(61, 44, 41, 0.12),
+    0 5px 0 var(--shadow);
+}
+
+.sticker-cell.locked .sticker-face::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 7px,
+    rgba(61, 44, 41, 0.06) 7px,
+    rgba(61, 44, 41, 0.06) 14px
+  );
+  pointer-events: none;
+}
+
+.sticker-art {
+  width: 88%;
+  height: 88%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.sticker-emoji {
+  font-size: clamp(1.8rem, 8vw, 2.6rem);
+  line-height: 1;
+}
+
+.sticker-lock {
+  position: relative;
+  z-index: 1;
+  font-size: 1.6rem;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.12));
+  opacity: 0.9;
+}
+
+.sticker-name {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--ink-soft);
+  line-height: 1.15;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 2px;
+}
+
+.sticker-cell.unlocked .sticker-name {
+  color: var(--ink);
+}
+
+.sticker-cell.just-unlocked .sticker-face {
+  animation: sticker-pop 0.7s ease;
+  box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.45), 0 5px 0 var(--shadow);
+}
+
+.sticker-hint {
+  margin: 0;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  flex-shrink: 0;
+  padding-bottom: 4px;
+}
+
+/* Small top-right reset */
+.btn-reset-stickers {
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 3px 0 var(--shadow);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.btn-reset-stickers:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--shadow);
+  color: var(--ink);
+}
+
+/* Full-size sticker viewer */
+.sticker-viewer {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: calc(12px + var(--safe-top)) 16px calc(16px + var(--safe-bottom));
+  background: rgba(45, 36, 32, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.sticker-viewer[hidden] {
+  display: none !important;
+}
+
+.sticker-viewer-back {
+  position: absolute;
+  top: calc(12px + var(--safe-top));
+  left: max(12px, env(safe-area-inset-left, 0px));
+  z-index: 2;
+}
+
+.sticker-viewer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: min(88vw, 420px);
+  max-height: min(78vh, 560px);
+  padding: 18px 16px 20px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, #fffef9, #fff3d6);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+  animation: sticker-pop 0.35s ease;
+}
+
+.sticker-viewer-img {
+  width: 100%;
+  max-height: min(58vh, 420px);
+  object-fit: contain;
+  border-radius: 16px;
+  background: #fff;
+  pointer-events: none;
+}
+
+.sticker-viewer-name {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Music library */
+.screen-music {
+  background: linear-gradient(165deg, #c8e8ff 0%, #e8d5f8 50%, #ffe8c8 100%);
+}
+
+.music-lib-bg {
+  opacity: 0.9;
+}
+
+.music-book {
+  max-width: 520px;
+}
+
+.music-section-label {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+
+.music-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+  max-height: none;
+  overflow: visible;
+}
+
+.music-book {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.music-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  border: 3px solid transparent;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 5px 0 var(--shadow);
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: default;
+}
+
+button.music-row.unlocked {
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+button.music-row.unlocked:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--shadow);
+}
+
+.music-row.locked {
+  background: linear-gradient(160deg, #d8d2c8, #c4bdb2);
+  opacity: 0.95;
+}
+
+.music-row.playing {
+  border-color: var(--orange);
+  background: linear-gradient(180deg, #fff8d6, #ffe0a8);
+}
+
+.music-row-icon {
+  font-size: 1.5rem;
+  width: 36px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.music-row-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.music-row-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.music-row-sub {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.music-row.locked .music-row-title {
+  color: var(--ink-soft);
+}
+
+@media (min-width: 700px) {
+  .sticker-grid {
+    gap: 14px;
+  }
+
+  .sticker-name {
+    font-size: 0.85rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .sticker-book-sub {
+    display: none;
+  }
+
+  .sticker-name {
+    font-size: 0.65rem;
+  }
+
+  .sticker-grid {
+    gap: 6px;
+  }
+}
+
 .animal-art {
   display: block;
   width: min(42vw, 180px);

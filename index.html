@@ -48,12 +48,24 @@
               <span class="mode-desc">Free play · no limit</span>
             </button>
           </div>
+          <div class="collect-row">
+            <button class="btn btn-secondary btn-stickers" type="button" id="btn-stickers">
+              <span aria-hidden="true">📒</span>
+              <span>Stickers</span>
+              <span class="sticker-progress" id="sticker-progress-title">0/18</span>
+            </button>
+            <button class="btn btn-secondary btn-music-lib" type="button" id="btn-music-lib">
+              <span aria-hidden="true">🎵</span>
+              <span>Songs</span>
+              <span class="sticker-progress" id="music-progress-title">0/8</span>
+            </button>
+          </div>
           <button class="btn btn-ghost btn-music" type="button" id="btn-music" aria-pressed="false">
             <span class="music-icon" aria-hidden="true">♪</span>
             <span>Music</span>
             <span class="music-track" id="music-label"></span>
           </button>
-          <p class="credit-line">Art: Openmoji (CC BY-SA 4.0) · Music: original soft loops</p>
+          <p class="credit-line">Play 8+ correct · unlock sticker or song</p>
         </div>
       </section>
 
@@ -196,12 +208,79 @@
             <div class="result-bar result-bar-final" id="result-bar-final" aria-hidden="true"></div>
             <p class="score-line" id="score-line">10 / 10</p>
           </div>
+          <div class="sticker-unlock-banner" id="sticker-unlock-banner" hidden>
+            <p class="sticker-unlock-label" id="sticker-unlock-label">New sticker!</p>
+            <div class="sticker-unlock-preview" id="sticker-unlock-preview"></div>
+            <p class="sticker-unlock-name" id="sticker-unlock-name"></p>
+          </div>
           <p id="celebrate-msg">You're a great friend!</p>
           <div class="celebrate-actions">
             <button class="btn btn-primary btn-xl" type="button" id="btn-again">Play again</button>
+            <button class="btn btn-secondary" type="button" id="btn-celebrate-stickers">Stickers</button>
+            <button class="btn btn-secondary" type="button" id="btn-celebrate-music">Songs</button>
             <button class="btn btn-secondary" type="button" id="btn-switch">New friend</button>
             <button class="btn btn-ghost" type="button" id="btn-bye">Home</button>
           </div>
+        </div>
+      </section>
+
+      <!-- Sticker wall / book -->
+      <section class="screen screen-stickers" id="screen-stickers" aria-label="Sticker book" hidden>
+        <div class="sticker-book-bg" aria-hidden="true"></div>
+        <div class="sticker-book">
+          <header class="sticker-book-top">
+            <button class="btn btn-icon" type="button" id="btn-stickers-back" aria-label="Back">←</button>
+            <div class="sticker-book-heading">
+              <h2 id="sticker-book-title">Sticker book</h2>
+              <p class="sticker-book-sub" id="sticker-book-sub">Play mode · 8+ correct unlocks 1</p>
+            </div>
+            <div class="sticker-book-actions">
+              <span class="sticker-progress-chip" id="sticker-progress-chip">0/18</span>
+              <button class="btn-reset-stickers" type="button" id="btn-reset-stickers" aria-label="Reset stickers" title="Reset stickers">↺</button>
+            </div>
+          </header>
+
+          <div class="sticker-page-tabs" role="tablist" aria-label="Sticker books">
+            <button class="sticker-tab active" type="button" data-page="1" role="tab" aria-selected="true">Book 1</button>
+            <button class="sticker-tab" type="button" data-page="2" role="tab" aria-selected="false">Book 2</button>
+          </div>
+
+          <div class="sticker-page-label" id="sticker-page-label">Friends</div>
+          <div class="sticker-grid" id="sticker-grid" aria-label="Stickers"></div>
+
+          <p class="sticker-hint" id="sticker-hint">Get 8 or more correct in Play to unlock a sticker!</p>
+        </div>
+
+        <!-- Full sticker viewer -->
+        <div class="sticker-viewer" id="sticker-viewer" hidden>
+          <button class="btn btn-icon sticker-viewer-back" type="button" id="btn-sticker-viewer-back" aria-label="Back">←</button>
+          <div class="sticker-viewer-card">
+            <img class="sticker-viewer-img" id="sticker-viewer-img" alt="" src="">
+            <p class="sticker-viewer-name" id="sticker-viewer-name"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Music library -->
+      <section class="screen screen-music" id="screen-music" aria-label="Song book" hidden>
+        <div class="sticker-book-bg music-lib-bg" aria-hidden="true"></div>
+        <div class="sticker-book music-book">
+          <header class="sticker-book-top">
+            <button class="btn btn-icon" type="button" id="btn-music-back" aria-label="Back">←</button>
+            <div class="sticker-book-heading">
+              <h2>Song book</h2>
+              <p class="sticker-book-sub">Play mode · 8+ correct unlocks song or sticker</p>
+            </div>
+            <div class="sticker-book-actions">
+              <span class="sticker-progress-chip" id="music-progress-chip">0/8</span>
+              <button class="btn-reset-stickers" type="button" id="btn-reset-music" aria-label="Reset songs" title="Reset songs">↺</button>
+            </div>
+          </header>
+          <p class="music-section-label">Background music</p>
+          <div class="music-list" id="music-list-free"></div>
+          <p class="music-section-label">Unlock songs</p>
+          <div class="music-list" id="music-list-unlock"></div>
+          <p class="sticker-hint" id="music-hint">Get 8+ correct in Play — sometimes a song, sometimes a sticker!</p>
         </div>
       </section>
     </div>

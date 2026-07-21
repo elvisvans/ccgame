@@ -3,6 +3,47 @@
 
   const PLAY_QUESTIONS = 10;
   const CHOICES_BY_LEVEL = { 1: 2, 2: 3, 3: 4 };
+  const STICKER_UNLOCK_MIN = 8;
+  const STICKER_STORAGE_KEY = "hb-stickers-v1";
+  const MUSIC_STORAGE_KEY = "hb-music-v1";
+  const STICKERS_PER_PAGE = 9;
+
+  /**
+   * 2 books × 3×3 grid. Replace assets/stickers/p{page}-{slot}.png with your cartoon art.
+   * Placeholder emoji shows until custom art loads.
+   */
+  const STICKER_BOOKS = [
+    {
+      id: 1,
+      title: "Book 1 · Friends",
+      stickers: [
+        { id: "p1-1", name: "Anpanman", emoji: "🍞", src: "assets/stickers/p1-1.png" },
+        { id: "p1-2", name: "Melonpanna", emoji: "🍈", src: "assets/stickers/p1-2.webp" },
+        { id: "p1-3", name: "Currypanman", emoji: "🍛", src: "assets/stickers/p1-3.webp" },
+        { id: "p1-4", name: "Creampanda", emoji: "🐼", src: "assets/stickers/p1-4.webp" },
+        { id: "p1-5", name: "Baikinman", emoji: "🦠", src: "assets/stickers/p1-5.webp" },
+        { id: "p1-6", name: "Dokinchan", emoji: "💗", src: "assets/stickers/p1-6.webp" },
+        { id: "p1-7", name: "Butterko", emoji: "🧈", src: "assets/stickers/p1-7.webp" },
+        { id: "p1-8", name: "Horrorman", emoji: "🦴", src: "assets/stickers/p1-8.webp" },
+        { id: "p1-9", name: "Shokupanman", emoji: "🥖", src: "assets/stickers/p1-9.webp" },
+      ],
+    },
+    {
+      id: 2,
+      title: "Book 2 · Fun day",
+      stickers: [
+        { id: "p2-1", name: "Jam Ojisan", emoji: "🍓", src: "assets/stickers/p2-1.webp" },
+        { id: "p2-2", name: "Kokinchan", emoji: "📘", src: "assets/stickers/p2-2.webp" },
+        { id: "p2-3", name: "Dokin basket", emoji: "🧺", src: "assets/stickers/p2-3.webp" },
+        { id: "p2-4", name: "Creampanda", emoji: "😲", src: "assets/stickers/p2-4.webp" },
+        { id: "p2-5", name: "Blue Tears", emoji: "💧", src: "assets/stickers/p2-5.webp" },
+        { id: "p2-6", name: "Friends", emoji: "🤝", src: "assets/stickers/p2-6.webp" },
+        { id: "p2-7", name: "Adventure 1", emoji: "🎬", src: "assets/stickers/p2-7.webp" },
+        { id: "p2-8", name: "Adventure 2", emoji: "🌟", src: "assets/stickers/p2-8.webp" },
+        { id: "p2-9", name: "All friends", emoji: "🎉", src: "assets/stickers/p2-9.jpg" },
+      ],
+    },
+  ];
 
   // Openmoji CC BY-SA 4.0 — local copies from unpkg openmoji
   const ANIMALS = {
@@ -56,12 +97,29 @@
     surprised: { emoji: "😲", icon: "assets/items/surprised.svg", code: "1F632" },
   };
 
-  const MUSIC_TRACKS = [
-    { id: "lullaby", src: "assets/music/soft-lullaby.wav", label: "Lullaby" },
-    { id: "playful", src: "assets/music/soft-playful.wav", label: "Playful" },
-    { id: "dreamy", src: "assets/music/soft-dreamy.wav", label: "Dreamy" },
-    { id: "sunny", src: "assets/music/soft-sunny.wav", label: "Sunny" },
+  /** Always available background music (assets/music) */
+  const BASE_MUSIC = [
+    { id: "bgm-50on", src: "assets/music/01. Bgm 50on.mp3", label: "Bgm 50on", free: true },
+    { id: "ad-06", src: "assets/music/03. Ad 06 An Inst.mp3", label: "Ad 06 Inst", free: true },
+    { id: "bgm-block", src: "assets/music/03. Bgm Block.mp3", label: "Bgm Block", free: true },
+    { id: "bg-dokin", src: "assets/music/07. Bg 04 Dokin.mp3", label: "Bg Dokin", free: true },
+    { id: "rh-haru", src: "assets/music/65. Rh 04 Haru.mp3", label: "Rh Haru", free: true },
+    { id: "rh-musu", src: "assets/music/66. Rh 05 Musu.mp3", label: "Rh Musu", free: true },
   ];
+
+  /** Unlockable songs from assets/unlock-music (Play mode 8+ correct) */
+  const UNLOCK_MUSIC = [
+    { id: "u-courage", src: "assets/unlock-music/01. Courage Ringing.mp3", label: "Courage Ringing", free: false },
+    { id: "u-march", src: "assets/unlock-music/02. March.mp3", label: "March", free: false },
+    { id: "u-akhp", src: "assets/unlock-music/03. Song Akhp.mp3", label: "Song Akhp", free: false },
+    { id: "u-aond", src: "assets/unlock-music/04. Song Aond.mp3", label: "Song Aond", free: false },
+    { id: "u-apts", src: "assets/unlock-music/05. Song Apts.mp3", label: "Song Apts", free: false },
+    { id: "u-hige", src: "assets/unlock-music/06. Song Hige.mp3", label: "Song Hige", free: false },
+    { id: "u-tewo", src: "assets/unlock-music/07. Song Tewo.mp3", label: "Song Tewo", free: false },
+    { id: "u-sunsun", src: "assets/unlock-music/08. Sun Sun.mp3", label: "Sun Sun", free: false },
+  ];
+
+  const ALL_MUSIC = BASE_MUSIC.concat(UNLOCK_MUSIC);
 
   // Openmoji item icons (local + unpkg fallback)
   function iconPaths(file, code) {
@@ -997,8 +1055,17 @@
     level: document.getElementById("screen-level"),
     play: document.getElementById("screen-play"),
     celebrate: document.getElementById("screen-celebrate"),
+    stickers: document.getElementById("screen-stickers"),
+    musicLib: document.getElementById("screen-music"),
     btnModePlay: document.getElementById("btn-mode-play"),
     btnModePractice: document.getElementById("btn-mode-practice"),
+    btnStickers: document.getElementById("btn-stickers"),
+    btnMusicLib: document.getElementById("btn-music-lib"),
+    btnCelebrateStickers: document.getElementById("btn-celebrate-stickers"),
+    btnCelebrateMusic: document.getElementById("btn-celebrate-music"),
+    btnStickersBack: document.getElementById("btn-stickers-back"),
+    btnMusicBack: document.getElementById("btn-music-back"),
+    btnResetMusic: document.getElementById("btn-reset-music"),
     btnAgain: document.getElementById("btn-again"),
     btnSwitch: document.getElementById("btn-switch"),
     btnBye: document.getElementById("btn-bye"),
@@ -1025,6 +1092,25 @@
     resultBarFinal: document.getElementById("result-bar-final"),
     scoreLine: document.getElementById("score-line"),
     celebrateTitle: document.getElementById("celebrate-title"),
+    stickerUnlockBanner: document.getElementById("sticker-unlock-banner"),
+    stickerUnlockLabel: document.getElementById("sticker-unlock-label"),
+    stickerUnlockPreview: document.getElementById("sticker-unlock-preview"),
+    stickerUnlockName: document.getElementById("sticker-unlock-name"),
+    stickerGrid: document.getElementById("sticker-grid"),
+    stickerPageLabel: document.getElementById("sticker-page-label"),
+    stickerProgressTitle: document.getElementById("sticker-progress-title"),
+    stickerProgressChip: document.getElementById("sticker-progress-chip"),
+    musicProgressTitle: document.getElementById("music-progress-title"),
+    musicProgressChip: document.getElementById("music-progress-chip"),
+    musicListFree: document.getElementById("music-list-free"),
+    musicListUnlock: document.getElementById("music-list-unlock"),
+    musicHint: document.getElementById("music-hint"),
+    stickerHint: document.getElementById("sticker-hint"),
+    btnResetStickers: document.getElementById("btn-reset-stickers"),
+    stickerViewer: document.getElementById("sticker-viewer"),
+    stickerViewerImg: document.getElementById("sticker-viewer-img"),
+    stickerViewerName: document.getElementById("sticker-viewer-name"),
+    btnStickerViewerBack: document.getElementById("btn-sticker-viewer-back"),
     buddy: document.getElementById("buddy"),
     buddyImg: document.getElementById("buddy-img"),
     buddyWrap: document.getElementById("buddy-wrap"),
@@ -1057,6 +1143,15 @@
     lastRoundId: null,
     recentRoundIds: [],
     lastTrackId: null,
+    stickerPage: 1,
+    /** @type {string[]} unlocked sticker ids */
+    unlockedStickers: [],
+    /** @type {string[]} unlocked music ids (unlock tracks only) */
+    unlockedMusic: [],
+    /** @type {null | object} */
+    lastUnlockedSticker: null,
+    /** @type {null | { type: string, item: object }} */
+    lastReward: null,
     motionTimer: null,
     practiceSwap: false,
     /** @type {null | { id: string, feeling: string, prompt: string, praise: string, correctId: string, options: { id: string, label: string, emoji: string, icon?: string, cdn?: string }[] }} */
@@ -1096,6 +1191,8 @@
       level: el.level,
       play: el.play,
       celebrate: el.celebrate,
+      stickers: el.stickers,
+      music: el.musicLib,
     };
     Object.entries(map).forEach(([key, node]) => {
       if (!node) return;
@@ -1103,6 +1200,436 @@
       node.hidden = !on;
       node.classList.toggle("active", on);
     });
+  }
+
+  function allStickerDefs() {
+    return STICKER_BOOKS.flatMap((b) => b.stickers);
+  }
+
+  function loadStickers() {
+    try {
+      const raw = localStorage.getItem(STICKER_STORAGE_KEY);
+      if (!raw) {
+        state.unlockedStickers = [];
+        return;
+      }
+      const data = JSON.parse(raw);
+      state.unlockedStickers = Array.isArray(data.unlocked) ? data.unlocked : [];
+    } catch (_) {
+      state.unlockedStickers = [];
+    }
+  }
+
+  function saveStickers() {
+    try {
+      localStorage.setItem(
+        STICKER_STORAGE_KEY,
+        JSON.stringify({ unlocked: state.unlockedStickers })
+      );
+    } catch (_) {}
+  }
+
+  function loadMusicUnlocks() {
+    try {
+      const raw = localStorage.getItem(MUSIC_STORAGE_KEY);
+      if (!raw) {
+        state.unlockedMusic = [];
+        return;
+      }
+      const data = JSON.parse(raw);
+      state.unlockedMusic = Array.isArray(data.unlocked) ? data.unlocked : [];
+    } catch (_) {
+      state.unlockedMusic = [];
+    }
+  }
+
+  function saveMusicUnlocks() {
+    try {
+      localStorage.setItem(
+        MUSIC_STORAGE_KEY,
+        JSON.stringify({ unlocked: state.unlockedMusic })
+      );
+    } catch (_) {}
+  }
+
+  function isStickerUnlocked(id) {
+    return state.unlockedStickers.indexOf(id) !== -1;
+  }
+
+  function isMusicUnlocked(id) {
+    const track = ALL_MUSIC.find((t) => t.id === id);
+    if (track && track.free) return true;
+    return state.unlockedMusic.indexOf(id) !== -1;
+  }
+
+  function stickerCount() {
+    return {
+      have: state.unlockedStickers.length,
+      total: allStickerDefs().length,
+    };
+  }
+
+  function musicCount() {
+    return {
+      have: state.unlockedMusic.length,
+      total: UNLOCK_MUSIC.length,
+    };
+  }
+
+  function updateStickerProgressUI() {
+    const { have, total } = stickerCount();
+    const text = `${have}/${total}`;
+    if (el.stickerProgressTitle) el.stickerProgressTitle.textContent = text;
+    if (el.stickerProgressChip) el.stickerProgressChip.textContent = text;
+  }
+
+  function updateMusicProgressUI() {
+    const { have, total } = musicCount();
+    const text = `${have}/${total}`;
+    if (el.musicProgressTitle) el.musicProgressTitle.textContent = text;
+    if (el.musicProgressChip) el.musicProgressChip.textContent = text;
+  }
+
+  function nextLockedSticker() {
+    const locked = allStickerDefs().filter((s) => !isStickerUnlocked(s.id));
+    if (!locked.length) return null;
+    return locked[Math.floor(Math.random() * locked.length)];
+  }
+
+  function nextLockedMusic() {
+    const locked = UNLOCK_MUSIC.filter((t) => !isMusicUnlocked(t.id));
+    if (!locked.length) return null;
+    return locked[Math.floor(Math.random() * locked.length)];
+  }
+
+  /**
+   * Play mode reward: randomly sticker OR song (whichever still available).
+   * @returns {{ type: "sticker"|"music", item: object } | null}
+   */
+  function tryUnlockRewardFromPlay(rights) {
+    state.lastUnlockedSticker = null;
+    state.lastReward = null;
+    if (!isPlayMode()) return null;
+    if (rights < STICKER_UNLOCK_MIN) return null;
+
+    const sticker = nextLockedSticker();
+    const music = nextLockedMusic();
+    if (!sticker && !music) return null;
+
+    let pickType = "sticker";
+    if (sticker && music) pickType = Math.random() < 0.5 ? "sticker" : "music";
+    else if (music) pickType = "music";
+    else pickType = "sticker";
+
+    if (pickType === "sticker" && sticker) {
+      state.unlockedStickers.push(sticker.id);
+      saveStickers();
+      state.lastUnlockedSticker = sticker;
+      state.lastReward = { type: "sticker", item: sticker };
+      updateStickerProgressUI();
+      return state.lastReward;
+    }
+    if (music) {
+      state.unlockedMusic.push(music.id);
+      saveMusicUnlocks();
+      state.lastReward = { type: "music", item: music };
+      updateMusicProgressUI();
+      return state.lastReward;
+    }
+    return null;
+  }
+
+  function availableMusicTracks() {
+    return ALL_MUSIC.filter((t) => isMusicUnlocked(t.id));
+  }
+
+  function renderMusicLibrary() {
+    const freeHost = el.musicListFree;
+    const unlockHost = el.musicListUnlock;
+    if (!freeHost || !unlockHost) return;
+
+    freeHost.innerHTML = "";
+    unlockHost.innerHTML = "";
+
+    BASE_MUSIC.forEach((t) => {
+      freeHost.appendChild(renderMusicRow(t, true));
+    });
+    UNLOCK_MUSIC.forEach((t) => {
+      unlockHost.appendChild(renderMusicRow(t, isMusicUnlocked(t.id)));
+    });
+
+    const { have, total } = musicCount();
+    if (el.musicHint) {
+      if (have >= total) {
+        el.musicHint.textContent = "All songs unlocked! Tap one to play.";
+      } else {
+        el.musicHint.textContent = `Play mode · 8+ correct · random sticker or song (${have}/${total} songs)`;
+      }
+    }
+    updateMusicProgressUI();
+  }
+
+  function renderMusicRow(track, unlocked) {
+    const row = document.createElement(unlocked ? "button" : "div");
+    if (unlocked) row.type = "button";
+    row.className = "music-row" + (unlocked ? " unlocked" : " locked");
+    row.dataset.id = track.id;
+
+    const icon = document.createElement("span");
+    icon.className = "music-row-icon";
+    icon.textContent = unlocked ? "🎵" : "🔒";
+    icon.setAttribute("aria-hidden", "true");
+
+    const meta = document.createElement("span");
+    meta.className = "music-row-meta";
+    const title = document.createElement("span");
+    title.className = "music-row-title";
+    title.textContent = unlocked ? track.label : "???";
+    const sub = document.createElement("span");
+    sub.className = "music-row-sub";
+    sub.textContent = unlocked
+      ? track.free
+        ? "Tap to play"
+        : "Unlocked · tap to play"
+      : "Locked";
+    meta.appendChild(title);
+    meta.appendChild(sub);
+
+    row.appendChild(icon);
+    row.appendChild(meta);
+
+    if (unlocked) {
+      if (state.lastTrackId === track.id && state.musicOn) {
+        row.classList.add("playing");
+      }
+      row.addEventListener("click", () => playSelectedTrack(track));
+    }
+    return row;
+  }
+
+  function playSelectedTrack(track) {
+    ensureAudio();
+    loadTrack(track);
+    state.musicOn = true;
+    el.btnMusic.setAttribute("aria-pressed", "true");
+    el.btnMusicPlay.setAttribute("aria-pressed", "true");
+    startLoadedMusic(0.32);
+    sfxPick();
+    speak(track.label);
+    renderMusicLibrary();
+  }
+
+  function openMusicLibrary() {
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    closeStickerViewer();
+    renderMusicLibrary();
+    showScreen("music");
+    const { have, total } = musicCount();
+    speak(
+      have >= total
+        ? "Song book is full! Pick a song!"
+        : `Song book! You unlocked ${have} special songs.`
+    );
+  }
+
+  function resetMusicBook() {
+    const { have } = musicCount();
+    if (have === 0) {
+      speak("No songs to reset!");
+      return;
+    }
+    const ok = window.confirm("Reset unlock songs? Free soft music stays.");
+    if (!ok) return;
+    state.unlockedMusic = [];
+    state.lastReward = null;
+    saveMusicUnlocks();
+    // If current track was unlock-only, fall back to free
+    const cur = ALL_MUSIC.find((t) => t.id === state.lastTrackId);
+    if (cur && !cur.free) {
+      stopMusic();
+      state.musicOn = false;
+      el.btnMusic.setAttribute("aria-pressed", "false");
+      el.btnMusicPlay.setAttribute("aria-pressed", "false");
+      if (el.musicLabel) el.musicLabel.textContent = "";
+    }
+    updateMusicProgressUI();
+    renderMusicLibrary();
+    sfxWrong();
+    speak("Unlock songs reset!");
+  }
+
+  function renderStickerCell(sticker, unlocked, opts) {
+    const cell = document.createElement(unlocked ? "button" : "div");
+    if (unlocked) cell.type = "button";
+    cell.className = "sticker-cell" + (unlocked ? " unlocked" : " locked");
+    cell.dataset.id = sticker.id;
+    cell.setAttribute("aria-label", unlocked ? sticker.name : "Locked sticker");
+
+    const inner = document.createElement("div");
+    inner.className = "sticker-face";
+
+    if (unlocked) {
+      const img = document.createElement("img");
+      img.className = "sticker-art";
+      img.alt = sticker.name;
+      img.draggable = false;
+      img.src = sticker.src;
+      img.onerror = () => {
+        img.remove();
+        const em = document.createElement("span");
+        em.className = "sticker-emoji";
+        em.textContent = sticker.emoji;
+        em.setAttribute("aria-hidden", "true");
+        inner.prepend(em);
+      };
+      inner.appendChild(img);
+    } else {
+      // Fully blocked — no preview art
+      const lock = document.createElement("span");
+      lock.className = "sticker-lock";
+      lock.textContent = "🔒";
+      lock.setAttribute("aria-hidden", "true");
+      inner.appendChild(lock);
+    }
+
+    const name = document.createElement("span");
+    name.className = "sticker-name";
+    name.textContent = unlocked ? sticker.name : "???";
+
+    cell.appendChild(inner);
+    cell.appendChild(name);
+
+    if (unlocked && !(opts && opts.noClick)) {
+      cell.addEventListener("click", () => openStickerViewer(sticker));
+    }
+
+    if (opts && opts.highlight) cell.classList.add("just-unlocked");
+    return cell;
+  }
+
+  function openStickerViewer(sticker) {
+    if (!el.stickerViewer || !sticker) return;
+    if (el.stickerViewerImg) {
+      el.stickerViewerImg.src = sticker.src;
+      el.stickerViewerImg.alt = sticker.name;
+      el.stickerViewerImg.onerror = () => {
+        el.stickerViewerImg.removeAttribute("src");
+        el.stickerViewerImg.alt = sticker.emoji + " " + sticker.name;
+      };
+    }
+    if (el.stickerViewerName) el.stickerViewerName.textContent = sticker.name;
+    el.stickerViewer.hidden = false;
+    el.stickerViewer.classList.add("open");
+    sfxPick();
+    speak(sticker.name);
+  }
+
+  function closeStickerViewer() {
+    if (!el.stickerViewer) return;
+    el.stickerViewer.hidden = true;
+    el.stickerViewer.classList.remove("open");
+    if (el.stickerViewerImg) {
+      el.stickerViewerImg.removeAttribute("src");
+      el.stickerViewerImg.alt = "";
+    }
+  }
+
+  function renderStickerGrid() {
+    if (!el.stickerGrid) return;
+    const book = STICKER_BOOKS.find((b) => b.id === state.stickerPage) || STICKER_BOOKS[0];
+    el.stickerGrid.innerHTML = "";
+    if (el.stickerPageLabel) el.stickerPageLabel.textContent = book.title;
+
+    book.stickers.forEach((st) => {
+      const unlocked = isStickerUnlocked(st.id);
+      const highlight =
+        state.lastUnlockedSticker && state.lastUnlockedSticker.id === st.id;
+      el.stickerGrid.appendChild(renderStickerCell(st, unlocked, { highlight }));
+    });
+
+    document.querySelectorAll(".sticker-tab").forEach((tab) => {
+      const p = Number(tab.dataset.page);
+      const on = p === state.stickerPage;
+      tab.classList.toggle("active", on);
+      tab.setAttribute("aria-selected", String(on));
+    });
+
+    const { have, total } = stickerCount();
+    if (el.stickerHint) {
+      if (have >= total) {
+        el.stickerHint.textContent = "All stickers collected! You're a super star!";
+      } else {
+        el.stickerHint.textContent = `Play 8+ correct · random sticker or song (${have}/${total} stickers)`;
+      }
+    }
+    updateStickerProgressUI();
+  }
+
+  function resetStickerBook() {
+    const { have } = stickerCount();
+    if (have === 0) {
+      speak("No stickers to reset!");
+      return;
+    }
+    const ok = window.confirm("Reset sticker book? All stickers will be locked again.");
+    if (!ok) return;
+    state.unlockedStickers = [];
+    state.lastUnlockedSticker = null;
+    saveStickers();
+    updateStickerProgressUI();
+    renderStickerGrid();
+    sfxWrong();
+    speak("Sticker book reset. Collect them again!");
+  }
+
+  function openStickerBook(page) {
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    closeStickerViewer();
+    if (page) state.stickerPage = page;
+    // Jump to page of last unlock if any
+    if (state.lastUnlockedSticker) {
+      const id = state.lastUnlockedSticker.id;
+      if (id.indexOf("p2-") === 0) state.stickerPage = 2;
+      else state.stickerPage = 1;
+    }
+    renderStickerGrid();
+    showScreen("stickers");
+    const { have, total } = stickerCount();
+    speak(
+      have >= total
+        ? "Your sticker book is full! Amazing!"
+        : `Sticker book! You have ${have} stickers.`
+    );
+  }
+
+  function showUnlockOnCelebrate(reward) {
+    if (!el.stickerUnlockBanner) return;
+    if (!reward || !reward.item) {
+      el.stickerUnlockBanner.hidden = true;
+      return;
+    }
+    el.stickerUnlockBanner.hidden = false;
+    el.stickerUnlockBanner.classList.toggle("is-music", reward.type === "music");
+    if (el.stickerUnlockPreview) el.stickerUnlockPreview.innerHTML = "";
+
+    if (reward.type === "sticker") {
+      if (el.stickerUnlockLabel) el.stickerUnlockLabel.textContent = "New sticker!";
+      if (el.stickerUnlockName) el.stickerUnlockName.textContent = reward.item.name;
+      if (el.stickerUnlockPreview) {
+        el.stickerUnlockPreview.appendChild(
+          renderStickerCell(reward.item, true, { highlight: true, noClick: true })
+        );
+      }
+    } else {
+      if (el.stickerUnlockLabel) el.stickerUnlockLabel.textContent = "New song!";
+      if (el.stickerUnlockName) el.stickerUnlockName.textContent = reward.item.label;
+      if (el.stickerUnlockPreview) {
+        const badge = document.createElement("div");
+        badge.className = "music-unlock-badge";
+        badge.innerHTML = '<span class="music-unlock-note">🎵</span>';
+        el.stickerUnlockPreview.appendChild(badge);
+      }
+    }
   }
 
   function choiceCount() {
@@ -1277,9 +1804,11 @@
   }
 
   function pickRandomTrack() {
-    let pool = MUSIC_TRACKS.slice();
+    let pool = availableMusicTracks();
+    if (!pool.length) pool = BASE_MUSIC.slice();
     if (state.lastTrackId && pool.length > 1) {
-      pool = pool.filter((t) => t.id !== state.lastTrackId);
+      const filtered = pool.filter((t) => t.id !== state.lastTrackId);
+      if (filtered.length) pool = filtered;
     }
     return pick(pool);
   }
@@ -1287,23 +1816,57 @@
   function loadTrack(track) {
     if (!el.bgMusic || !track) return;
     state.lastTrackId = track.id;
-    el.bgMusic.src = track.src;
+    // Encode path segments so spaces in filenames work on all hosts
+    const encoded = track.src
+      .split("/")
+      .map((part) => encodeURIComponent(part))
+      .join("/")
+      .replace(/%2F/gi, "/");
+    try {
+      el.bgMusic.pause();
+    } catch (_) {}
     el.bgMusic.loop = true;
-    el.bgMusic.volume = 0.28;
+    el.bgMusic.preload = "auto";
+    el.bgMusic.src = encoded;
+    el.bgMusic.load();
     if (el.musicLabel) el.musicLabel.textContent = track.label;
+  }
+
+  function startLoadedMusic(volume) {
+    if (!el.bgMusic) return;
+    el.bgMusic.volume = typeof volume === "number" ? volume : 0.28;
+    el.bgMusic.loop = true;
+    const tryPlay = () => {
+      const play = el.bgMusic.play();
+      if (play && typeof play.catch === "function") {
+        play.catch(() => {
+          // Retry once after a short delay (iOS / slow load)
+          setTimeout(() => {
+            el.bgMusic.play().catch(() => {});
+          }, 200);
+        });
+      }
+    };
+    if (el.bgMusic.readyState >= 2) {
+      tryPlay();
+    } else {
+      const onReady = () => {
+        el.bgMusic.removeEventListener("canplay", onReady);
+        tryPlay();
+      };
+      el.bgMusic.addEventListener("canplay", onReady);
+      tryPlay();
+    }
   }
 
   function startMusic(forceNew) {
     if (!el.bgMusic) return;
-    if (forceNew || !el.bgMusic.src || el.bgMusic.paused) {
-      if (forceNew || !state.lastTrackId) loadTrack(pickRandomTrack());
+    if (forceNew || !el.bgMusic.getAttribute("src") || !state.lastTrackId) {
+      loadTrack(pickRandomTrack());
+    } else if (forceNew) {
+      loadTrack(pickRandomTrack());
     }
-    el.bgMusic.volume = 0.28;
-    el.bgMusic.loop = true;
-    const play = el.bgMusic.play();
-    if (play && typeof play.catch === "function") {
-      play.catch(() => {});
-    }
+    startLoadedMusic(0.28);
   }
 
   function setMusic(on) {
@@ -1316,6 +1879,27 @@
     } else {
       stopMusic();
     }
+  }
+
+  // Keep looping if a track ends despite loop attribute
+  if (el.bgMusic) {
+    el.bgMusic.addEventListener("ended", () => {
+      if (!state.musicOn) return;
+      try {
+        el.bgMusic.currentTime = 0;
+        el.bgMusic.play().catch(() => {});
+      } catch (_) {}
+    });
+    el.bgMusic.addEventListener("error", () => {
+      // Skip broken file and try another available track
+      if (!state.musicOn) return;
+      const pool = availableMusicTracks().filter((t) => t.id !== state.lastTrackId);
+      const next = pool.length ? pick(pool) : pick(BASE_MUSIC);
+      if (next) {
+        loadTrack(next);
+        startLoadedMusic(0.28);
+      }
+    });
   }
 
   function clearMotion() {
@@ -1722,12 +2306,42 @@
       el.celebrateTitle.textContent =
         rights === total ? "Perfect!" : rights >= 7 ? "Great job!" : "Nice try!";
     }
-    el.celebrateMsg.textContent = `${name} is proud! You got ${rights} out of ${total}.`;
-    speak(
-      rights === total
-        ? `Perfect! Ten out of ten! ${name} loves you!`
-        : `All done! You got ${rights} out of ${total}. Great job!`
-    );
+
+    const reward = tryUnlockRewardFromPlay(rights);
+    showUnlockOnCelebrate(reward);
+
+    if (reward && reward.type === "sticker") {
+      el.celebrateMsg.textContent = `${name} is proud! ${rights}/${total} · New sticker: ${reward.item.name}!`;
+      speak(
+        rights === total
+          ? `Perfect! New sticker! ${reward.item.name}!`
+          : `Great job! You unlocked sticker ${reward.item.name}!`
+      );
+    } else if (reward && reward.type === "music") {
+      el.celebrateMsg.textContent = `${name} is proud! ${rights}/${total} · New song: ${reward.item.label}!`;
+      speak(
+        rights === total
+          ? `Perfect! New song! ${reward.item.label}!`
+          : `Great job! You unlocked the song ${reward.item.label}!`
+      );
+      // Auto-play new song once
+      playSelectedTrack(reward.item);
+    } else if (
+      rights >= STICKER_UNLOCK_MIN &&
+      !nextLockedSticker() &&
+      !nextLockedMusic()
+    ) {
+      el.celebrateMsg.textContent = `${name} is proud! ${rights}/${total}. Everything unlocked!`;
+      speak(`Amazing! ${rights} out of ${total}. You collected everything!`);
+    } else if (rights < STICKER_UNLOCK_MIN) {
+      el.celebrateMsg.textContent = `${name} is proud! ${rights}/${total}. Get ${STICKER_UNLOCK_MIN}+ for a prize!`;
+      speak(
+        `All done! You got ${rights} out of ${total}. Get ${STICKER_UNLOCK_MIN} or more to unlock a sticker or song!`
+      );
+    } else {
+      el.celebrateMsg.textContent = `${name} is proud! You got ${rights} out of ${total}.`;
+      speak(`All done! You got ${rights} out of ${total}. Great job!`);
+    }
   }
 
   function openModeHome() {
@@ -1800,7 +2414,54 @@
   // Events
   if (el.btnModePlay) el.btnModePlay.addEventListener("click", () => selectMode("play"));
   if (el.btnModePractice) el.btnModePractice.addEventListener("click", () => selectMode("practice"));
+  if (el.btnStickers) {
+    el.btnStickers.addEventListener("click", () => {
+      state.lastUnlockedSticker = null;
+      openStickerBook(state.stickerPage);
+    });
+  }
+  if (el.btnMusicLib) {
+    el.btnMusicLib.addEventListener("click", openMusicLibrary);
+  }
+  if (el.btnCelebrateStickers) {
+    el.btnCelebrateStickers.addEventListener("click", () => openStickerBook());
+  }
+  if (el.btnCelebrateMusic) {
+    el.btnCelebrateMusic.addEventListener("click", openMusicLibrary);
+  }
+  if (el.btnStickersBack) {
+    el.btnStickersBack.addEventListener("click", goHome);
+  }
+  if (el.btnMusicBack) {
+    el.btnMusicBack.addEventListener("click", goHome);
+  }
+  if (el.btnResetStickers) {
+    el.btnResetStickers.addEventListener("click", resetStickerBook);
+  }
+  if (el.btnResetMusic) {
+    el.btnResetMusic.addEventListener("click", resetMusicBook);
+  }
+  if (el.btnStickerViewerBack) {
+    el.btnStickerViewerBack.addEventListener("click", closeStickerViewer);
+  }
+  if (el.stickerViewer) {
+    el.stickerViewer.addEventListener("click", (e) => {
+      if (e.target === el.stickerViewer) closeStickerViewer();
+    });
+  }
+  document.querySelectorAll(".sticker-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const p = Number(tab.dataset.page);
+      if (p !== 1 && p !== 2) return;
+      state.stickerPage = p;
+      state.lastUnlockedSticker = null;
+      renderStickerGrid();
+      sfxPick();
+    });
+  });
   el.btnAgain.addEventListener("click", () => {
+    state.lastUnlockedSticker = null;
+    if (el.stickerUnlockBanner) el.stickerUnlockBanner.hidden = true;
     if (isPlayMode()) {
       beginPlay();
     } else {
@@ -1907,6 +2568,10 @@
 
   if (isStandalone()) document.body.classList.add("ios-standalone");
 
+  loadStickers();
+  loadMusicUnlocks();
+  updateStickerProgressUI();
+  updateMusicProgressUI();
   setAnimal("bunny");
   showScreen("title");
 })();
