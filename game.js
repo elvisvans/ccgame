@@ -1931,8 +1931,25 @@
     if (/male|david|mark|daniel|james|george|tom|fred|ravi|thomas|richard|google uk english male|microsoft david|microsoft mark|microsoft guy|microsoft steffan/.test(name)) {
       return false;
     }
-    // Many mobile voices: prefer non-explicitly-male
     return true;
+  }
+
+  function isAppleDevice() {
+    const ua = navigator.userAgent || "";
+    const touchMac = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+    return /iPhone|iPad|iPod/i.test(ua) || touchMac || (/Mac OS X/i.test(ua) && !/Chrome|Firefox|Edg/i.test(ua) && /Safari/i.test(ua));
+  }
+
+  /** Prefer Apple "Samantha" on iPhone / iPad / Safari */
+  function findSamanthaVoice(voices) {
+    const list = voices || getAllVoices();
+    return (
+      list.find((v) => /^samantha$/i.test((v.name || "").trim())) ||
+      list.find((v) => /samantha/i.test(v.name || "") && /en(-|_)us/i.test(v.lang || "")) ||
+      list.find((v) => /samantha/i.test(v.name || "") && /^en\b/i.test(v.lang || "")) ||
+      list.find((v) => /samantha/i.test(v.name || "")) ||
+      null
+    );
   }
 
   function scoreVoice(v, style) {
@@ -1946,19 +1963,28 @@
     else score -= 20;
     if (v.localService) score += 3;
 
+    // Strong default preference for Samantha (Apple)
+    if (/samantha/i.test(name)) {
+      score += 80;
+      if (/en-us|en_us/.test(lang)) score += 20;
+    }
+
     if (style === "kid") {
+      if (/samantha/i.test(name)) score += 40;
       if (/child|kids|junior|girl|princess|ivy|salli|joanna/.test(name)) score += 20;
-      if (/zira|jenny|aria|samantha|karen|tessa|fiona|salli/.test(name)) score += 12;
+      if (/zira|jenny|aria|karen|tessa|fiona|salli/.test(name)) score += 12;
       if (/natural|neural|online/.test(name)) score += 4;
     } else if (style === "high") {
-      // Prefer lighter / brighter named voices; different from soft
+      if (/samantha/i.test(name)) score += 35;
       if (/zira|jenny|aria|ivy|salli|karen|tessa/.test(name)) score += 14;
       if (/susan|hazel|victoria|moira|serena/.test(name)) score -= 4;
     } else if (style === "soft") {
-      if (/samantha|victoria|moira|serena|susan|hazel|fiona|karen|catherine|linda/.test(name)) score += 16;
+      if (/samantha/i.test(name)) score += 50;
+      if (/victoria|moira|serena|susan|hazel|fiona|karen|catherine|linda/.test(name)) score += 16;
       if (/zira|jenny|ivy|salli/.test(name)) score -= 2;
     } else if (style === "default") {
-      if (v.default) score += 40;
+      if (/samantha/i.test(name)) score += 100;
+      if (v.default) score += 20;
       score += 5;
     }
     return score;
@@ -1973,18 +1999,33 @@
   /** Pick different auto voices per style when possible */
   function pickVoiceForStyle(style) {
     const voices = getEnglishVoices();
-    if (!voices.length) return null;
+    const all = getAllVoices();
+    if (!voices.length && !all.length) return null;
 
     if (style === "custom" && state.settings.voiceURI) {
-      const hit = getAllVoices().find((v) => v.voiceURI === state.settings.voiceURI);
+      const hit = all.find((v) => v.voiceURI === state.settings.voiceURI);
       if (hit) return hit;
     }
 
+    // Always try Samantha first on Apple devices (and generally if available)
+    const samantha = findSamanthaVoice(all.length ? all : voices);
+    if (samantha && style !== "custom") {
+      // On iPhone/iPad/Safari: force Samantha for all auto presets
+      if (isAppleDevice()) return samantha;
+      // Elsewhere: still prefer Samantha for kid/soft/default
+      if (style === "kid" || style === "soft" || style === "default" || style === "high") {
+        return samantha;
+      }
+    }
+
+    const pool = voices.length ? voices : all;
+
     if (style === "default") {
       return (
-        voices.find((v) => v.default) ||
-        voices.find((v) => /en-us/i.test(v.lang)) ||
-        voices[0]
+        findSamanthaVoice(pool) ||
+        pool.find((v) => v.default) ||
+        pool.find((v) => /en-us/i.test(v.lang)) ||
+        pool[0]
       );
     }
 
@@ -1994,11 +2035,11 @@
     const kidTop = kidRanked[0] && kidRanked[0].v;
     const kidURI = kidTop && kidTop.voiceURI;
 
-    if (style === "kid") return kidTop;
+    if (style === "kid") return kidTop || pool[0];
 
     if (style === "high") {
       const alt = highRanked.find((x) => x.v.voiceURI !== kidURI);
-      return (alt && alt.v) || (highRanked[0] && highRanked[0].v) || voices[0];
+      return (alt && alt.v) || (highRanked[0] && highRanked[0].v) || pool[0];
     }
 
     if (style === "soft") {
@@ -2011,11 +2052,11 @@
         (alt && alt.v) ||
         (highTop && highTop.v) ||
         (softRanked[0] && softRanked[0].v) ||
-        voices[0]
+        pool[0]
       );
     }
 
-    return voices[0];
+    return pool[0];
   }
 
   function getVoicePreset() {
