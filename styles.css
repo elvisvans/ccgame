@@ -1181,6 +1181,17 @@ button.music-row.unlocked:active {
   filter: drop-shadow(0 8px 0 rgba(61, 44, 41, 0.08));
 }
 
+/* Photo buddies (e.g. axolotl jpg) */
+.animal-art[src$=".jpg"],
+.animal-art[src$=".jpeg"],
+.animal-art[src$=".png"],
+.animal-art[src$=".webp"] {
+  border-radius: 28%;
+  background: #fff8fb;
+  object-fit: cover;
+  aspect-ratio: 1;
+}
+
 .buddy-preview .animal-art {
   width: min(48vw, 170px);
 }

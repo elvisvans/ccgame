@@ -1,5 +1,5 @@
 /* Happy Buddy service worker — offline cache for iPad / PWA */
-const CACHE = "happy-buddy-v1";
+const CACHE = "happy-buddy-v4";
 const CORE = [
   "./",
   "./index.html",
@@ -12,7 +12,8 @@ const CORE = [
   "./assets/animals/bunny.svg",
   "./assets/animals/cat.svg",
   "./assets/animals/dog.svg",
-  "./assets/animals/pig.svg",
+  "./assets/animals/axolotl.jpg",
+  "./assets/animals/axolotl-happy.jpg",
   "./assets/animals/shark.svg",
   "./assets/animals/bear.svg",
   "./assets/music/soft-lullaby.wav",

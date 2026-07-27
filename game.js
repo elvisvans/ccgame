@@ -89,11 +89,12 @@
       src: "assets/animals/dog.svg",
       cdn: "https://unpkg.com/openmoji@15.0.0/color/svg/1F436.svg",
     },
-    pig: {
-      id: "pig",
-      name: "Piggy",
-      src: "assets/animals/pig.svg",
-      cdn: "https://unpkg.com/openmoji@15.0.0/color/svg/1F437.svg",
+    dino: {
+      id: "dino",
+      name: "Axolotl",
+      src: "assets/animals/axolotl.jpg",
+      srcHappy: "assets/animals/axolotl-happy.jpg",
+      cdn: "",
     },
     shark: {
       id: "shark",
@@ -763,22 +764,22 @@
     },
     // —— animal-specific new friends ——
     {
-      id: "pig-mud-fun",
+      id: "dino-play-ball",
       feeling: "happy",
-      prompt: "Piggy loves to play! Find the ball!",
-      praise: "Oink oink! Fun play!",
+      prompt: "Axolotl loves to play! Find the ball!",
+      praise: "Yay! Splashy fun!",
       correctPool: ["ball"],
       wrongPool: ["bed", "soap", "moon", "chair"],
-      animals: ["pig"],
+      animals: ["dino"],
     },
     {
-      id: "pig-hungry",
+      id: "dino-hungry",
       feeling: "hungry",
-      prompt: "Piggy is hungry. Find food!",
-      praise: "Yum! Piggy is happy!",
+      prompt: "Axolotl is hungry. Find food!",
+      praise: "Yum! Axolotl is happy!",
       correctPool: ["apple", "cookie", "bread", "carrot"],
       wrongPool: ["hat", "tv", "car", "soap"],
-      animals: ["pig"],
+      animals: ["dino"],
     },
     {
       id: "shark-fish",
@@ -2690,6 +2691,7 @@
   }
 
   function setAnimal(animalId) {
+    if (animalId === "pig") animalId = "dino";
     state.animalId = animalId in ANIMALS ? animalId : "bunny";
     const a = animal();
     el.buddy.dataset.animal = a.id;
@@ -2697,14 +2699,14 @@
       el.buddyImg.src = a.src;
       el.buddyImg.alt = a.name;
       el.buddyImg.onerror = () => {
-        if (el.buddyImg.src !== a.cdn) el.buddyImg.src = a.cdn;
+        if (a.cdn && el.buddyImg.src !== a.cdn) el.buddyImg.src = a.cdn;
       };
     }
     if (el.celebrateBuddy) {
-      el.celebrateBuddy.src = a.src;
+      el.celebrateBuddy.src = a.srcHappy || a.src;
       el.celebrateBuddy.alt = a.name;
       el.celebrateBuddy.onerror = () => {
-        if (el.celebrateBuddy.src !== a.cdn) el.celebrateBuddy.src = a.cdn;
+        if (a.cdn && el.celebrateBuddy.src !== a.cdn) el.celebrateBuddy.src = a.cdn;
       };
     }
   }
@@ -3085,7 +3087,7 @@
     const feeling = String(r.feeling || "");
 
     // Animal-specific treats
-    if (/cat-fish|dog-bone|bunny-carrot|pig-|shark-|bear-/.test(id)) return "treats";
+    if (/cat-fish|dog-bone|bunny-carrot|dino-|pig-|shark-|bear-/.test(id)) return "treats";
 
     // Explicit feelings practice / emotion rounds
     if (
