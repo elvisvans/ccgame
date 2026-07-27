@@ -1,0 +1,58 @@
+<svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cute cartoon axolotl (六角恐龍) -->
+  <g id="color">
+    <!-- outer gills left -->
+    <ellipse fill="#FF8FAB" cx="14" cy="28" rx="7" ry="11" transform="rotate(-18 14 28)"/>
+    <ellipse fill="#FFB3C6" cx="11" cy="22" rx="4.5" ry="8" transform="rotate(-28 11 22)"/>
+    <ellipse fill="#FFB3C6" cx="10" cy="34" rx="4.5" ry="8" transform="rotate(8 10 34)"/>
+    <!-- outer gills right -->
+    <ellipse fill="#FF8FAB" cx="58" cy="28" rx="7" ry="11" transform="rotate(18 58 28)"/>
+    <ellipse fill="#FFB3C6" cx="61" cy="22" rx="4.5" ry="8" transform="rotate(28 61 22)"/>
+    <ellipse fill="#FFB3C6" cx="62" cy="34" rx="4.5" ry="8" transform="rotate(-8 62 34)"/>
+    <!-- body -->
+    <ellipse fill="#FFC2D4" cx="36" cy="42" rx="16" ry="18"/>
+    <!-- belly -->
+    <ellipse fill="#FFE5EC" cx="36" cy="46" rx="10" ry="12"/>
+    <!-- head -->
+    <ellipse fill="#FFB3C6" cx="36" cy="28" rx="18" ry="16"/>
+    <!-- face blush -->
+    <ellipse fill="#FF8FAB" cx="24" cy="32" rx="3.2" ry="2.2" opacity="0.75"/>
+    <ellipse fill="#FF8FAB" cx="48" cy="32" rx="3.2" ry="2.2" opacity="0.75"/>
+    <!-- little feet -->
+    <ellipse fill="#FF9EBB" cx="26" cy="58" rx="5" ry="3.5"/>
+    <ellipse fill="#FF9EBB" cx="46" cy="58" rx="5" ry="3.5"/>
+    <!-- tail -->
+    <path fill="#FFB3C6" d="M48 48 C58 46 64 40 66 34 C62 38 56 42 50 44 Z"/>
+    <path fill="#FF8FAB" d="M52 46 C58 43 62 38 64 34 C60 38 56 42 52 44 Z" opacity="0.7"/>
+  </g>
+  <g id="line" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+    <!-- gills -->
+    <ellipse cx="14" cy="28" rx="7" ry="11" transform="rotate(-18 14 28)"/>
+    <ellipse cx="11" cy="22" rx="4.5" ry="8" transform="rotate(-28 11 22)"/>
+    <ellipse cx="10" cy="34" rx="4.5" ry="8" transform="rotate(8 10 34)"/>
+    <ellipse cx="58" cy="28" rx="7" ry="11" transform="rotate(18 58 28)"/>
+    <ellipse cx="61" cy="22" rx="4.5" ry="8" transform="rotate(28 61 22)"/>
+    <ellipse cx="62" cy="34" rx="4.5" ry="8" transform="rotate(-8 62 34)"/>
+    <!-- body / head -->
+    <ellipse cx="36" cy="42" rx="16" ry="18"/>
+    <ellipse cx="36" cy="28" rx="18" ry="16"/>
+    <ellipse cx="36" cy="46" rx="10" ry="12" stroke-width="1.5"/>
+    <!-- feet -->
+    <ellipse cx="26" cy="58" rx="5" ry="3.5"/>
+    <ellipse cx="46" cy="58" rx="5" ry="3.5"/>
+    <!-- tail -->
+    <path d="M48 48 C58 46 64 40 66 34 C62 38 56 42 50 44"/>
+    <!-- eyes (big cute) -->
+    <circle cx="29" cy="26" r="3.2" fill="#fff" stroke="#000" stroke-width="1.6"/>
+    <circle cx="43" cy="26" r="3.2" fill="#fff" stroke="#000" stroke-width="1.6"/>
+    <circle cx="29.6" cy="26.4" r="1.5" fill="#2b2b2b" stroke="none"/>
+    <circle cx="43.6" cy="26.4" r="1.5" fill="#2b2b2b" stroke="none"/>
+    <circle cx="30.4" cy="25.6" r="0.55" fill="#fff" stroke="none"/>
+    <circle cx="44.4" cy="25.6" r="0.55" fill="#fff" stroke="none"/>
+    <!-- smile -->
+    <path d="M31 34 Q36 38 41 34" stroke-width="1.8"/>
+    <!-- tiny nose dots -->
+    <circle cx="34.5" cy="31.5" r="0.7" fill="#E85A8C" stroke="none"/>
+    <circle cx="37.5" cy="31.5" r="0.7" fill="#E85A8C" stroke="none"/>
+  </g>
+</svg>
