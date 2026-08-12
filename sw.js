@@ -1,5 +1,5 @@
 /* Happy Buddy service worker — offline cache for iPad / PWA */
-const CACHE = "happy-buddy-v4";
+const CACHE = "happy-buddy-v9";
 const CORE = [
   "./",
   "./index.html",

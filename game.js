@@ -16,6 +16,33 @@
     treats: { id: "treats", label: "Animal treats" },
   };
 
+  const FIND_SCENES = {
+    home: {
+      id: "home",
+      label: "Home",
+      props: [
+        { id: "bed", x: 3, y: 40, w: 24, h: 26 },
+        { id: "door", x: 78, y: 6, w: 18, h: 38 },
+        { id: "chair", x: 66, y: 50, w: 16, h: 20 },
+        { id: "lamp", x: 28, y: 36, w: 14, h: 18 },
+        { id: "apple", x: 46, y: 38, w: 12, h: 14 },
+        { id: "ball", x: 16, y: 68, w: 12, h: 14 },
+      ],
+    },
+    playground: {
+      id: "playground",
+      label: "Playground",
+      props: [
+        { id: "tree", x: 1, y: 20, w: 22, h: 42 },
+        { id: "slide", x: 26, y: 36, w: 24, h: 30 },
+        { id: "swing", x: 54, y: 24, w: 22, h: 34 },
+        { id: "flower", x: 6, y: 70, w: 12, h: 14 },
+        { id: "ball", x: 34, y: 70, w: 12, h: 14 },
+        { id: "hat", x: 76, y: 56, w: 16, h: 16 },
+      ],
+    },
+  };
+
   const DEFAULT_SETTINGS = {
     playQuestions: 10,
     unlockMin: 8,
@@ -65,6 +92,23 @@
         { id: "p2-7", name: "Adventure 1", emoji: "🎬", src: "assets/stickers/p2-7.webp" },
         { id: "p2-8", name: "Adventure 2", emoji: "🌟", src: "assets/stickers/p2-8.webp" },
         { id: "p2-9", name: "All friends", emoji: "🎉", src: "assets/stickers/p2-9.jpg" },
+      ],
+    },
+    {
+      id: 3,
+      title: "Book 3 · Seasons",
+      stickers: [
+        { id: "p3-1", name: "Spring 2025", emoji: "🌸", src: "assets/stickers/25spring_1920x1080.jpg" },
+        { id: "p3-2", name: "Summer 2025", emoji: "🌻", src: "assets/stickers/25summer_1920x1080.jpg" },
+        { id: "p3-3", name: "Autumn 2025", emoji: "🍁", src: "assets/stickers/25aut_1920x1080.jpg" },
+        { id: "p3-4", name: "Winter 2025", emoji: "❄️", src: "assets/stickers/25winter_1920x1080.jpg" },
+        { id: "p3-5", name: "Christmas 2025", emoji: "🎄", src: "assets/stickers/25xmas_1920x1080.jpg" },
+        { id: "p3-6", name: "Spring 2026", emoji: "🌷", src: "assets/stickers/26spring_1920x1080.jpg" },
+        { id: "p3-7", name: "Summer 2026", emoji: "🏖️", src: "assets/stickers/26summer_1920x1080.jpg" },
+        { id: "p3-8", name: "Autumn 2024", emoji: "🍂", src: "assets/stickers/24aut_1920x1080.jpg" },
+        { id: "p3-9", name: "Winter 2024", emoji: "⛄", src: "assets/stickers/24winter_1920x1080.jpg" },
+        { id: "p3-10", name: "Christmas 2024", emoji: "🎁", src: "assets/stickers/24christmas_1920x1080.jpg" },
+        { id: "p3-11", name: "Key Friends", emoji: "🔑", src: "assets/stickers/key_1920x1080.jpg" },
       ],
     },
   ];
@@ -1658,6 +1702,7 @@
     pick: document.getElementById("screen-pick"),
     level: document.getElementById("screen-level"),
     category: document.getElementById("screen-category"),
+    scene: document.getElementById("screen-scene"),
     play: document.getElementById("screen-play"),
     celebrate: document.getElementById("screen-celebrate"),
     stickers: document.getElementById("screen-stickers"),
@@ -1665,6 +1710,7 @@
     settings: document.getElementById("screen-settings"),
     btnModePlay: document.getElementById("btn-mode-play"),
     btnModePractice: document.getElementById("btn-mode-practice"),
+    btnModeFind: document.getElementById("btn-mode-find"),
     btnStickers: document.getElementById("btn-stickers"),
     btnMusicLib: document.getElementById("btn-music-lib"),
     btnSettings: document.getElementById("btn-settings"),
@@ -1682,7 +1728,13 @@
     btnPickBack: document.getElementById("btn-pick-back"),
     btnLevelBack: document.getElementById("btn-level-back"),
     btnCategoryBack: document.getElementById("btn-category-back"),
+    btnSceneBack: document.getElementById("btn-scene-back"),
     categoryGrid: document.getElementById("category-grid"),
+    sceneGrid: document.getElementById("scene-grid"),
+    findScene: document.getElementById("find-scene"),
+    findRoomBg: document.getElementById("find-room-bg"),
+    findProps: document.getElementById("find-props"),
+    findModeDesc: document.getElementById("find-mode-desc"),
     btnPracAnimal: document.getElementById("btn-prac-animal"),
     btnPracLevel: document.getElementById("btn-prac-level"),
     btnPracCategory: document.getElementById("btn-prac-category"),
@@ -1750,7 +1802,7 @@
   };
 
   const state = {
-    mode: "play", // "play" | "practice"
+    mode: "play", // "play" | "practice" | "find"
     questionIndex: 0,
     /** @type {("pending"|"right"|"wrong")[]} */
     results: [],
@@ -1763,6 +1815,9 @@
     animalId: "bunny",
     level: 1,
     category: "all",
+    findSceneId: "home",
+    findUsedTargets: [],
+    findOrder: [],
     lastRoundId: null,
     recentRoundIds: [],
     lastTrackId: null,
@@ -1878,14 +1933,17 @@
     if (el.playModeDesc) {
       el.playModeDesc.textContent = `${q} questions · score bar`;
     }
+    if (el.findModeDesc) {
+      el.findModeDesc.textContent = `${q} questions · find in room`;
+    }
     if (el.settingsSummary) {
-      el.settingsSummary.textContent = `Play ${q} · unlock at ${u}+ · ${voiceStyleLabel()}`;
+      el.settingsSummary.textContent = `Play/Find ${q} · unlock at ${u}+ · ${voiceStyleLabel()}`;
     }
     if (el.unlockNote) {
       el.unlockNote.textContent =
         q === 5
-          ? "5-question Play: unlock prize with 5 correct"
-          : "Need this many correct in one 10-question Play run";
+          ? "5-question Play or Find: unlock prize with 5 correct"
+          : "Need this many correct in one 10-question Play or Find run";
     }
     const bookSubs = document.querySelectorAll(".sticker-book-sub");
     bookSubs.forEach((node) => {
@@ -2157,6 +2215,7 @@
       pick: el.pick,
       level: el.level,
       category: el.category,
+      scene: el.scene,
       play: el.play,
       celebrate: el.celebrate,
       stickers: el.stickers,
@@ -2455,12 +2514,7 @@
       inner.appendChild(lock);
     }
 
-    const name = document.createElement("span");
-    name.className = "sticker-name";
-    name.textContent = unlocked ? sticker.name : "???";
-
     cell.appendChild(inner);
-    cell.appendChild(name);
 
     if (unlocked && !(opts && opts.noClick)) {
       cell.addEventListener("click", () => openStickerViewer(sticker));
@@ -2500,22 +2554,13 @@
 
   function renderStickerGrid() {
     if (!el.stickerGrid) return;
-    const book = STICKER_BOOKS.find((b) => b.id === state.stickerPage) || STICKER_BOOKS[0];
     el.stickerGrid.innerHTML = "";
-    if (el.stickerPageLabel) el.stickerPageLabel.textContent = book.title;
 
-    book.stickers.forEach((st) => {
+    allStickerDefs().forEach((st) => {
       const unlocked = isStickerUnlocked(st.id);
       const highlight =
         state.lastUnlockedSticker && state.lastUnlockedSticker.id === st.id;
       el.stickerGrid.appendChild(renderStickerCell(st, unlocked, { highlight }));
-    });
-
-    document.querySelectorAll(".sticker-tab").forEach((tab) => {
-      const p = Number(tab.dataset.page);
-      const on = p === state.stickerPage;
-      tab.classList.toggle("active", on);
-      tab.setAttribute("aria-selected", String(on));
     });
 
     const { have, total } = stickerCount();
@@ -2527,6 +2572,15 @@
       }
     }
     updateStickerProgressUI();
+
+    if (state.lastUnlockedSticker) {
+      const cell = el.stickerGrid.querySelector(
+        `[data-id="${state.lastUnlockedSticker.id}"]`
+      );
+      if (cell && cell.scrollIntoView) {
+        setTimeout(() => cell.scrollIntoView({ block: "center", behavior: "smooth" }), 50);
+      }
+    }
   }
 
   function resetStickerBook() {
@@ -2546,16 +2600,9 @@
     sfxClick();
   }
 
-  function openStickerBook(page) {
+  function openStickerBook() {
     window.speechSynthesis && window.speechSynthesis.cancel();
     closeStickerViewer();
-    if (page) state.stickerPage = page;
-    // Jump to page of last unlock if any
-    if (state.lastUnlockedSticker) {
-      const id = state.lastUnlockedSticker.id;
-      if (id.indexOf("p2-") === 0) state.stickerPage = 2;
-      else state.stickerPage = 1;
-    }
     renderStickerGrid();
     showScreen("stickers");
     sfxClick();
@@ -2596,7 +2643,20 @@
   }
 
   function isPlayMode() {
-    return state.mode === "play";
+    return state.mode === "play" || state.mode === "find";
+  }
+
+  function isFindMode() {
+    return state.mode === "find";
+  }
+
+  function findScene() {
+    return FIND_SCENES[state.findSceneId] || FIND_SCENES.home;
+  }
+
+  function findPropList(scene) {
+    const s = scene || findScene();
+    return (s.props || []).map((p) => (typeof p === "string" ? { id: p } : p));
   }
 
   function levelLabel() {
@@ -2607,8 +2667,15 @@
 
   function updateLevelChip() {
     if (el.levelChip) el.levelChip.textContent = levelLabel();
-    if (el.modeChip) el.modeChip.textContent = isPlayMode() ? "Play" : "Practice";
-    if (el.categoryChip) el.categoryChip.textContent = categoryLabel();
+    if (el.modeChip) {
+      el.modeChip.textContent = isFindMode() ? "Find" : isPlayMode() ? "Play" : "Practice";
+    }
+    if (el.levelChip) {
+      el.levelChip.hidden = isFindMode();
+    }
+    if (el.categoryChip) {
+      el.categoryChip.textContent = isFindMode() ? findScene().label : categoryLabel();
+    }
     if (el.choices) {
       el.choices.dataset.level = String(state.level);
       el.choices.classList.toggle("choices-l2", state.level === 2);
@@ -2616,8 +2683,12 @@
     }
     if (el.play) {
       el.play.classList.toggle("is-practice", !isPlayMode());
-      el.play.classList.toggle("is-play-mode", isPlayMode());
+      el.play.classList.toggle("is-play-mode", isPlayMode() && !isFindMode());
+      el.play.classList.toggle("is-find-mode", isFindMode());
+      el.play.classList.toggle("scene-playground", isFindMode() && state.findSceneId === "playground");
     }
+    if (el.findScene) el.findScene.hidden = !isFindMode();
+    if (el.choices) el.choices.hidden = isFindMode();
     // Play: score bar only · Practice: counter + friend/level tools only
     const playOn = isPlayMode();
     if (el.resultBarWrap) {
@@ -3289,6 +3360,140 @@
     });
   }
 
+  function lockFind(lock) {
+    state.locked = lock;
+    if (!el.findProps) return;
+    el.findProps.querySelectorAll(".find-prop").forEach((b) => {
+      b.disabled = lock;
+    });
+  }
+
+  function renderFindScene() {
+    if (!el.findProps) return;
+    const scene = findScene();
+    if (el.findRoomBg) {
+      el.findRoomBg.removeAttribute("src");
+      el.findRoomBg.hidden = true;
+    }
+    el.findProps.innerHTML = "";
+    findPropList(scene).forEach((spot) => {
+      const opt = itemById(spot.id);
+      if (!opt) return;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "find-prop";
+      btn.dataset.id = spot.id;
+      btn.setAttribute("aria-label", opt.label);
+      btn.style.left = `${spot.x || 0}%`;
+      btn.style.top = `${spot.y || 0}%`;
+      btn.style.width = `${spot.w || 16}%`;
+      btn.style.height = `${spot.h || 16}%`;
+      if (opt.icon) {
+        const img = document.createElement("img");
+        img.className = "find-prop-icon";
+        img.alt = "";
+        img.draggable = false;
+        img.src = opt.icon;
+        let triedCdn = false;
+        img.onerror = () => {
+          if (!triedCdn && opt.cdn) {
+            triedCdn = true;
+            img.src = opt.cdn;
+            return;
+          }
+          img.replaceWith(Object.assign(document.createElement("span"), {
+            className: "find-prop-emoji",
+            textContent: opt.emoji || "⭐",
+          }));
+        };
+        btn.appendChild(img);
+      }
+      btn.addEventListener("click", () => onFindProp(spot.id, btn));
+      el.findProps.appendChild(btn);
+    });
+  }
+
+  function buildFindRound() {
+    clearMotion();
+    const scene = findScene();
+    const props = findPropList(scene).map((p) => p.id);
+    if (state.findUsedTargets.length >= props.length) state.findUsedTargets = [];
+    const unused = props.filter((id) => !state.findUsedTargets.includes(id));
+    const pool = unused.length ? unused : props;
+    const correctId = pick(pool);
+    const item = itemById(correctId) || { label: "it" };
+    const prompt = `Find the ${item.label}!`;
+    const praise = `Yes! ${item.label}!`;
+
+    state.round = {
+      id: `find-${scene.id}-${correctId}`,
+      feeling: "happy",
+      prompt,
+      praise,
+      correctId,
+      options: [],
+    };
+    state.findUsedTargets.push(correctId);
+    state.misses = 0;
+    state.questionMissed = false;
+    state.locked = false;
+
+    setFeeling("happy");
+    el.promptText.textContent = prompt;
+    renderFindScene();
+    speak(prompt);
+  }
+
+  function onFindProp(id, btn) {
+    if (state.locked || !state.round) return;
+    const tapped = itemById(id);
+    const correct = id === state.round.correctId;
+
+    if (correct) {
+      lockFind(true);
+      btn.classList.add("correct-flash");
+      el.buddy.classList.remove("react-wrong");
+      playSuccessMotion(id, "happy");
+      setFeeling("happy");
+      burstSparkles();
+      sfxSuccess();
+      speak(state.round.praise);
+      sfxStar();
+      const idx = state.questionIndex;
+      if (idx < playQuestions()) {
+        state.results[idx] = "right";
+        renderResultBar();
+      }
+      setTimeout(() => {
+        clearMotion();
+        state.questionIndex += 1;
+        if (state.questionIndex >= playQuestions()) winSession();
+        else buildFindRound();
+      }, 1500);
+      return;
+    }
+
+    lockFind(true);
+    btn.classList.add("wrong-flash");
+    el.buddy.classList.add("react-wrong");
+    sfxWrong();
+    const want = itemById(state.round.correctId);
+    const wrongName = (tapped && tapped.label) || "that";
+    const wantName = (want && want.label) || "it";
+    speak(`That's the ${wrongName}. Find the ${wantName}!`);
+    const idx = state.questionIndex;
+    if (idx < playQuestions()) {
+      state.results[idx] = "wrong";
+      renderResultBar();
+    }
+    setTimeout(() => {
+      el.buddy.classList.remove("react-wrong");
+      state.questionIndex += 1;
+      if (state.questionIndex >= playQuestions()) winSession();
+      else buildFindRound();
+    }, 1800);
+  }
+
   function lockChoices(lock) {
     state.locked = lock;
     el.choices.querySelectorAll(".choice").forEach((b) => {
@@ -3408,9 +3613,18 @@
 
   function selectMode(mode) {
     ensureAudio();
-    state.mode = mode === "practice" ? "practice" : "play";
+    if (mode === "practice") state.mode = "practice";
+    else if (mode === "find") state.mode = "find";
+    else state.mode = "play";
     sfxClick();
     openPick();
+  }
+
+  function openScene() {
+    ensureAudio();
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    showScreen("scene");
+    sfxClick();
   }
 
   function openPick() {
@@ -3431,7 +3645,8 @@ sfxClick();
   function startGameWithAnimal(animalId) {
     ensureAudio();
     setAnimal(animalId);
-    openCategory();
+    if (isFindMode()) openScene();
+    else openCategory();
   }
 
   function openCategory() {
@@ -3455,13 +3670,21 @@ sfxClick();
       // practice keeps running totals unless fresh start
       if (state.practiceTotal === 0) updatePracticeHud();
     }
+    if (isFindMode()) {
+      const scene = findScene();
+      state.findUsedTargets = [];
+      state.findOrder = shuffle(findPropList(scene).map((p) => p.id));
+    }
     updateLevelChip();
     updatePracticeHud();
     if (state.musicOn) startMusic(true);
     showScreen("play");
     if (el.scoreSummary) el.scoreSummary.hidden = true;
     sfxClick();
-    setTimeout(() => buildRound(), 500);
+    setTimeout(() => {
+      if (isFindMode()) buildFindRound();
+      else buildRound();
+    }, 500);
   }
 
   function goHome() {
@@ -3473,10 +3696,11 @@ sfxClick();
   // Events
   if (el.btnModePlay) el.btnModePlay.addEventListener("click", () => selectMode("play"));
   if (el.btnModePractice) el.btnModePractice.addEventListener("click", () => selectMode("practice"));
+  if (el.btnModeFind) el.btnModeFind.addEventListener("click", () => selectMode("find"));
   if (el.btnStickers) {
     el.btnStickers.addEventListener("click", () => {
       state.lastUnlockedSticker = null;
-      openStickerBook(state.stickerPage);
+      openStickerBook();
     });
   }
   if (el.btnMusicLib) {
@@ -3574,16 +3798,6 @@ sfxClick();
       if (e.target === el.stickerViewer) closeStickerViewer();
     });
   }
-  document.querySelectorAll(".sticker-tab").forEach((tab) => {
-    tab.addEventListener("click", () => {
-      const p = Number(tab.dataset.page);
-      if (p !== 1 && p !== 2) return;
-      state.stickerPage = p;
-      state.lastUnlockedSticker = null;
-      renderStickerGrid();
-      sfxClick();
-    });
-  });
   el.btnAgain.addEventListener("click", () => {
     state.lastUnlockedSticker = null;
     if (el.stickerUnlockBanner) el.stickerUnlockBanner.hidden = true;
@@ -3632,6 +3846,22 @@ sfxClick();
       state.practiceSwap = true;
       showScreen("category");
       sfxClick();
+    });
+  }
+  if (el.btnSceneBack) {
+    el.btnSceneBack.addEventListener("click", () => {
+      openPick();
+    });
+  }
+  if (el.sceneGrid) {
+    el.sceneGrid.addEventListener("click", (e) => {
+      const card = e.target.closest("[data-scene]");
+      if (!card) return;
+      const id = card.dataset.scene;
+      if (!id || !(id in FIND_SCENES)) return;
+      state.findSceneId = id;
+      sfxClick();
+      beginPlay();
     });
   }
   if (el.btnCategoryBack) {

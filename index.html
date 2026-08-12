@@ -47,12 +47,17 @@
               <span class="mode-name">Practice</span>
               <span class="mode-desc">Free play · no limit</span>
             </button>
+            <button class="mode-card mode-card-find" type="button" id="btn-mode-find" data-mode="find">
+              <span class="mode-emoji" aria-hidden="true">🔍</span>
+              <span class="mode-name">Find</span>
+              <span class="mode-desc" id="find-mode-desc">10 questions · find in room</span>
+            </button>
           </div>
           <div class="collect-row">
             <button class="btn btn-secondary btn-stickers" type="button" id="btn-stickers">
               <span aria-hidden="true">📒</span>
               <span>Stickers</span>
-              <span class="sticker-progress" id="sticker-progress-title">0/18</span>
+              <span class="sticker-progress" id="sticker-progress-title">0/29</span>
             </button>
             <button class="btn btn-secondary btn-music-lib" type="button" id="btn-music-lib">
               <span aria-hidden="true">🎵</span>
@@ -147,6 +152,26 @@
         </div>
       </section>
 
+      <!-- Scene pick (Find mode) -->
+      <section class="screen screen-scene" id="screen-scene" aria-label="Choose a room" hidden>
+        <div class="pick-bg" aria-hidden="true"></div>
+        <div class="pick-content">
+          <button class="btn btn-icon pick-back" type="button" id="btn-scene-back" aria-label="Back">←</button>
+          <h2 class="pick-title">Where to look?</h2>
+          <p class="pick-sub">Tap a room</p>
+          <div class="category-grid scene-grid" id="scene-grid" role="group" aria-label="Rooms">
+            <button class="category-card" type="button" data-scene="home" aria-label="Home">
+              <span class="category-emoji" aria-hidden="true">🏠</span>
+              <span class="category-name">Home</span>
+            </button>
+            <button class="category-card" type="button" data-scene="playground" aria-label="Playground">
+              <span class="category-emoji" aria-hidden="true">🎠</span>
+              <span class="category-name">Playground</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
       <!-- Level pick -->
       <section class="screen screen-level" id="screen-level" aria-label="Choose level" hidden>
         <div class="pick-bg" aria-hidden="true"></div>
@@ -215,6 +240,18 @@
             <div class="prop bowl"></div>
           </div>
 
+          <div class="find-scene" id="find-scene" hidden>
+            <div class="find-chrome" aria-hidden="true">
+              <span class="find-window"></span>
+              <span class="find-rug"></span>
+              <span class="find-table"></span>
+              <span class="find-sun"></span>
+              <span class="find-fence"></span>
+            </div>
+            <img class="find-room-bg" id="find-room-bg" alt="" hidden draggable="false">
+            <div class="find-props" id="find-props" role="group" aria-label="Find items"></div>
+          </div>
+
           <div class="buddy-stage">
             <div class="buddy idle-bob" id="buddy" data-feeling="happy" data-animal="bunny">
               <div class="animal-wrap" id="buddy-wrap">
@@ -279,20 +316,14 @@
               <p class="sticker-book-sub" id="sticker-book-sub">Play mode · prize unlock</p>
             </div>
             <div class="sticker-book-actions">
-              <span class="sticker-progress-chip" id="sticker-progress-chip">0/18</span>
+              <span class="sticker-progress-chip" id="sticker-progress-chip">0/29</span>
               <button class="btn-reset-stickers" type="button" id="btn-reset-stickers" aria-label="Reset stickers" title="Reset stickers">↺</button>
             </div>
           </header>
 
-          <div class="sticker-page-tabs" role="tablist" aria-label="Sticker books">
-            <button class="sticker-tab active" type="button" data-page="1" role="tab" aria-selected="true">Book 1</button>
-            <button class="sticker-tab" type="button" data-page="2" role="tab" aria-selected="false">Book 2</button>
-          </div>
-
-          <div class="sticker-page-label" id="sticker-page-label">Friends</div>
           <div class="sticker-grid" id="sticker-grid" aria-label="Stickers"></div>
 
-          <p class="sticker-hint" id="sticker-hint">Get 8 or more correct in Play to unlock a sticker!</p>
+          <p class="sticker-hint" id="sticker-hint">Get enough correct in Play or Find to unlock a sticker!</p>
         </div>
 
         <!-- Full sticker viewer -->
@@ -328,7 +359,7 @@
 
           <div class="settings-block">
             <h3 class="settings-label">Prize unlock</h3>
-            <p class="settings-note" id="unlock-note">Need this many correct in one Play run</p>
+            <p class="settings-note" id="unlock-note">Need this many correct in one Play or Find run</p>
             <div class="settings-options" id="opt-unlock-min" role="group" aria-label="Unlock minimum">
               <button class="settings-chip" type="button" data-unlock="5">5 correct</button>
               <button class="settings-chip active" type="button" data-unlock="8">8 correct</button>
