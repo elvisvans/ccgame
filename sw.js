@@ -1,5 +1,5 @@
 /* Happy Buddy service worker — offline cache for iPad / PWA */
-const CACHE = "happy-buddy-v9";
+const CACHE = "happy-buddy-v10";
 const CORE = [
   "./",
   "./index.html",
@@ -16,10 +16,7 @@ const CORE = [
   "./assets/animals/axolotl-happy.jpg",
   "./assets/animals/shark.svg",
   "./assets/animals/bear.svg",
-  "./assets/music/soft-lullaby.wav",
-  "./assets/music/soft-playful.wav",
-  "./assets/music/soft-dreamy.wav",
-  "./assets/music/soft-sunny.wav",
+  "./assets/animals/pig.svg",
 ];
 
 self.addEventListener("install", (event) => {
@@ -55,7 +52,6 @@ self.addEventListener("fetch", (event) => {
         })
         .catch(() => cached);
 
-      // Prefer network for HTML; cache-first for assets
       if (req.mode === "navigate" || req.destination === "document") {
         return network.then((res) => res || cached || caches.match("./index.html"));
       }
